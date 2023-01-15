@@ -8,7 +8,7 @@ commands:
   test_package:
     steps:
       - run: pip install pytest deepdiff inflection
-      - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==1.0.0
+      - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==1.0.1
       - run:
           name: "run tests"
           command: |

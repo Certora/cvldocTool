@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 NAME = "CVLDoc"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 if __name__ == "__main__":
     setup(
@@ -30,7 +30,7 @@ if __name__ == "__main__":
                                              'tests/basic_tests/methods_test.spec',
                                              'tests/basic_tests/using_test.spec'])],
         install_requires=[
-            'cvldoc_parser==1.0.0',
+            'cvldoc_parser==1.0.1',
             'inflection'
         ],
         classifiers=[
