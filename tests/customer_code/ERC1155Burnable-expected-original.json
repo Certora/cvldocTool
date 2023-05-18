@@ -1,54 +1,54 @@
 [
-  {
-    "type": "text",
-    "text": "## Verification of ERC1155Burnable\n\n`ERC1155Burnable` extends the `ERC1155` functionality by wrapping the internal\nmethods `_burn` and `_burnBatch` in the public methods `burn` and `burnBatch`,\nadding a requirement that the caller of either method be the account holding\nthe tokens or approved to act on that account's behalf.\n\n### Assumptions and Simplifications\n\n- No changes made using the harness\n\n### Properties"
-  },
-  {
-    "type": "rule",
-    "id": "onlyHolderOrApprovedCanReduceBalance",
-    "title": "Only holder or approved can reduce balance",
-    "content": "/// If a method call reduces account balances, the caller must be either the \n/// holder of the account or approved to act on the holder's behalf.\nrule onlyHolderOrApprovedCanReduceBalance(method f) \n{\n    address holder; uint256 token; uint256 amount;\n    uint256 balanceBefore = balanceOf(holder, token);\n\n    env e; calldataarg args;\n    f(e, args);\n\n    uint256 balanceAfter = balanceOf(holder, token);\n\n    assert balanceAfter < balanceBefore => e.msg.sender == holder || isApprovedForAll(holder, e.msg.sender), \n        \"An account balance may only be reduced by the holder or a holder-approved agent\";\n}",
-    "notice": "If a method call reduces account balances, the caller must be either the \nholder of the account or approved to act on the holder's behalf.",
-    "params": [
-      {
-        "type": "method",
-        "name": "f"
-      }
-    ]
-  },
-  {
-    "type": "rule",
-    "id": "burnAmountProportionalToBalanceReduction",
-    "title": "Burn amount proportional to balance reduction",
-    "content": "/// Burning a larger amount of a token must reduce that token's balance more \n/// than burning a smaller amount.\n/// n.b. This rule holds for `burnBatch` as well due to rules establishing \n/// appropriate equivance between `burn` and `burnBatch` methods.\nrule burnAmountProportionalToBalanceReduction {\n    storage beforeBurn = lastStorage;\n    env e;\n    \n    address holder; uint256 token;\n    mathint startingBalance = balanceOf(holder, token);\n    uint256 smallBurn; uint256 largeBurn;\n    require smallBurn < largeBurn;\n\n    // smaller burn amount\n    burn(e, holder, token, smallBurn) at beforeBurn;\n    mathint smallBurnBalanceChange = startingBalance - balanceOf(holder, token);\n\n    // larger burn amount\n    burn(e, holder, token, largeBurn) at beforeBurn;\n    mathint largeBurnBalanceChange = startingBalance - balanceOf(holder, token);\n\n    assert smallBurnBalanceChange < largeBurnBalanceChange, \n        \"A larger burn must lead to a larger decrease in balance\";\n}",
-    "notice": "Burning a larger amount of a token must reduce that token's balance more \nthan burning a smaller amount.\nn.b. This rule holds for `burnBatch` as well due to rules establishing \nappropriate equivance between `burn` and `burnBatch` methods."
-  },
-  {
-    "type": "rule",
-    "id": "sequentialBurnsEquivalentToSingleBurnOfSum",
-    "title": "Sequential burns equivalent to single burn of sum",
-    "content": "/// Two sequential burns must be equivalent to a single burn of the sum of their\n/// amounts.\n/// This rule holds for `burnBatch` as well due to rules establishing \n/// appropriate equivance between `burn` and `burnBatch` methods.\nrule sequentialBurnsEquivalentToSingleBurnOfSum {\n    storage beforeBurns = lastStorage;\n    env e;\n\n    address holder; uint256 token;\n    mathint startingBalance = balanceOf(holder, token);\n    uint256 firstBurn; uint256 secondBurn; uint256 sumBurn;\n    require sumBurn == firstBurn + secondBurn;\n\n    // sequential burns\n    burn(e, holder, token, firstBurn) at beforeBurns;\n    burn(e, holder, token, secondBurn);\n    mathint sequentialBurnsBalanceChange = startingBalance - balanceOf(holder, token);\n\n    // burn of sum of sequential burns\n    burn(e, holder, token, sumBurn) at beforeBurns;\n    mathint sumBurnBalanceChange = startingBalance - balanceOf(holder, token);\n\n    assert sequentialBurnsBalanceChange == sumBurnBalanceChange, \n        \"Sequential burns must be equivalent to a burn of their sum\";\n}",
-    "notice": "Two sequential burns must be equivalent to a single burn of the sum of their\namounts.\nThis rule holds for `burnBatch` as well due to rules establishing \nappropriate equivance between `burn` and `burnBatch` methods."
-  },
-  {
-    "type": "rule",
-    "id": "singleTokenBurnBurnBatchEquivalence",
-    "title": "Single token burn burn batch equivalence",
-    "content": "/// The result of burning a single token must be equivalent whether done via\n/// burn or burnBatch.\nrule singleTokenBurnBurnBatchEquivalence {\n    storage beforeBurn = lastStorage;\n    env e;\n\n    address holder;\n    uint256 token; uint256 burnAmount;\n    uint256[] tokens; uint256[] burnAmounts;\n\n    mathint startingBalance = balanceOf(holder, token);\n\n    require tokens.length == 1; require burnAmounts.length == 1;\n    require tokens[0] == token; require burnAmounts[0] == burnAmount;\n\n    // burning via burn\n    burn(e, holder, token, burnAmount) at beforeBurn;\n    mathint burnBalanceChange = startingBalance - balanceOf(holder, token);\n\n    // burning via burnBatch\n    burnBatch(e, holder, tokens, burnAmounts) at beforeBurn;\n    mathint burnBatchBalanceChange = startingBalance - balanceOf(holder, token);\n\n    assert burnBalanceChange == burnBatchBalanceChange, \n        \"Burning a single token via burn or burnBatch must be equivalent\";\n}   ",
-    "notice": "The result of burning a single token must be equivalent whether done via\nburn or burnBatch."
-  },
-  {
-    "type": "rule",
-    "id": "multipleTokenBurnBurnBatchEquivalence",
-    "title": "Multiple token burn burn batch equivalence",
-    "content": "/// The results of burning multiple tokens must be equivalent whether done \n/// separately via burn or together via burnBatch.\nrule multipleTokenBurnBurnBatchEquivalence {\n    storage beforeBurns = lastStorage;\n    env e;\n\n    address holder;\n    uint256 tokenA; uint256 tokenB; uint256 tokenC;\n    uint256 burnAmountA; uint256 burnAmountB; uint256 burnAmountC;\n    uint256[] tokens; uint256[] burnAmounts;\n\n    mathint startingBalanceA = balanceOf(holder, tokenA);\n    mathint startingBalanceB = balanceOf(holder, tokenB);\n    mathint startingBalanceC = balanceOf(holder, tokenC);\n\n    require tokens.length == 3; require burnAmounts.length == 3;\n    require tokens[0] == tokenA; require burnAmounts[0] == burnAmountA;\n    require tokens[1] == tokenB; require burnAmounts[1] == burnAmountB;\n    require tokens[2] == tokenC; require burnAmounts[2] == burnAmountC;\n\n    // burning via burn\n    burn(e, holder, tokenA, burnAmountA) at beforeBurns;\n    burn(e, holder, tokenB, burnAmountB);\n    burn(e, holder, tokenC, burnAmountC);\n    mathint burnBalanceChangeA = startingBalanceA - balanceOf(holder, tokenA);\n    mathint burnBalanceChangeB = startingBalanceB - balanceOf(holder, tokenB);\n    mathint burnBalanceChangeC = startingBalanceC - balanceOf(holder, tokenC);\n\n    // burning via burnBatch\n    burnBatch(e, holder, tokens, burnAmounts) at beforeBurns;\n    mathint burnBatchBalanceChangeA = startingBalanceA - balanceOf(holder, tokenA);\n    mathint burnBatchBalanceChangeB = startingBalanceB - balanceOf(holder, tokenB);\n    mathint burnBatchBalanceChangeC = startingBalanceC - balanceOf(holder, tokenC);\n\n    assert burnBalanceChangeA == burnBatchBalanceChangeA\n        && burnBalanceChangeB == burnBatchBalanceChangeB\n        && burnBalanceChangeC == burnBatchBalanceChangeC, \n        \"Burning multiple tokens via burn or burnBatch must be equivalent\";\n}",
-    "notice": "The results of burning multiple tokens must be equivalent whether done \nseparately via burn or together via burnBatch."
-  },
-  {
-    "type": "rule",
-    "id": "burnBatchOnEmptyArraysChangesNothing",
-    "title": "Burn batch on empty arrays changes nothing",
-    "content": "/// If passed empty token and burn amount arrays, burnBatch must not change \n/// token balances or address permissions.\nrule burnBatchOnEmptyArraysChangesNothing {\n    uint256 token; address nonHolderA; address nonHolderB;\n\n    uint256 startingBalance = balanceOf(nonHolderA, token);\n    bool startingPermission = isApprovedForAll(nonHolderA, nonHolderB);\n\n    env e; address holder; uint256[] noTokens; uint256[] noBurnAmounts;\n    require noTokens.length == 0; require noBurnAmounts.length == 0;\n\n    burnBatch(e, holder, noTokens, noBurnAmounts);\n    \n    uint256 endingBalance = balanceOf(nonHolderA, token);\n    bool endingPermission = isApprovedForAll(nonHolderA, nonHolderB);\n\n    assert startingBalance == endingBalance, \n        \"burnBatch must not change token balances if passed empty arrays\";\n    assert startingPermission == endingPermission, \n        \"burnBatch must not change account permissions if passed empty arrays\";\n}",
-    "notice": "If passed empty token and burn amount arrays, burnBatch must not change \ntoken balances or address permissions."
-  }
+    {
+        "type": "text",
+        "text": "## Verification of ERC1155Burnable\n\n`ERC1155Burnable` extends the `ERC1155` functionality by wrapping the internal\nmethods `_burn` and `_burnBatch` in the public methods `burn` and `burnBatch`,\nadding a requirement that the caller of either method be the account holding\nthe tokens or approved to act on that account's behalf.\n\n### Assumptions and Simplifications\n\n- No changes made using the harness\n\n### Properties"
+    },
+    {
+        "content": "/// If a method call reduces account balances, the caller must be either the \n/// holder of the account or approved to act on the holder's behalf.\nrule onlyHolderOrApprovedCanReduceBalance(method f) \n{\n      address holder; uint256 token; uint256 amount;\n        uint256 balanceBefore = balanceOf(holder, token);\n\n        env e; calldataarg args;\n      f(e, args);\n\n        uint256 balanceAfter = balanceOf(holder, token);\n\n        assert balanceAfter < balanceBefore => e.msg.sender == holder || isApprovedForAll(holder, e.msg.sender), \n              \"An account balance may only be reduced by the holder or a holder-approved agent\";\n}",
+        "id": "onlyHolderOrApprovedCanReduceBalance",
+        "title": "Only holder or approved can reduce balance",
+        "type": "rule",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ],
+        "notice": "If a method call reduces account balances, the caller must be either the \nholder of the account or approved to act on the holder's behalf."
+    },
+    {
+        "content": "/// Burning a larger amount of a token must reduce that token's balance more \n/// than burning a smaller amount.\n/// n.b. This rule holds for `burnBatch` as well due to rules establishing \n/// appropriate equivance between `burn` and `burnBatch` methods.\nrule burnAmountProportionalToBalanceReduction {\n        storage beforeBurn = lastStorage;\n      env e;\n        \n      address holder; uint256 token;\n        mathint startingBalance = balanceOf(holder, token);\n      uint256 smallBurn; uint256 largeBurn;\n      require smallBurn < largeBurn;\n\n      // smaller burn amount\n        burn(e, holder, token, smallBurn) at beforeBurn;\n      mathint smallBurnBalanceChange = startingBalance - balanceOf(holder, token);\n\n        // larger burn amount\n        burn(e, holder, token, largeBurn) at beforeBurn;\n      mathint largeBurnBalanceChange = startingBalance - balanceOf(holder, token);\n\n        assert smallBurnBalanceChange < largeBurnBalanceChange, \n              \"A larger burn must lead to a larger decrease in balance\";\n}",
+        "id": "burnAmountProportionalToBalanceReduction",
+        "title": "Burn amount proportional to balance reduction",
+        "type": "rule",
+        "notice": "Burning a larger amount of a token must reduce that token's balance more \nthan burning a smaller amount.\nn.b. This rule holds for `burnBatch` as well due to rules establishing \nappropriate equivance between `burn` and `burnBatch` methods."
+    },
+    {
+        "content": "/// Two sequential burns must be equivalent to a single burn of the sum of their\n/// amounts.\n/// This rule holds for `burnBatch` as well due to rules establishing \n/// appropriate equivance between `burn` and `burnBatch` methods.\nrule sequentialBurnsEquivalentToSingleBurnOfSum {\n      storage beforeBurns = lastStorage;\n        env e;\n\n      address holder; uint256 token;\n        mathint startingBalance = balanceOf(holder, token);\n        uint256 firstBurn; uint256 secondBurn; uint256 sumBurn;\n      require sumBurn == firstBurn + secondBurn;\n\n      // sequential burns\n        burn(e, holder, token, firstBurn) at beforeBurns;\n        burn(e, holder, token, secondBurn);\n        mathint sequentialBurnsBalanceChange = startingBalance - balanceOf(holder, token);\n\n      // burn of sum of sequential burns\n        burn(e, holder, token, sumBurn) at beforeBurns;\n      mathint sumBurnBalanceChange = startingBalance - balanceOf(holder, token);\n\n      assert sequentialBurnsBalanceChange == sumBurnBalanceChange, \n              \"Sequential burns must be equivalent to a burn of their sum\";\n}",
+        "id": "sequentialBurnsEquivalentToSingleBurnOfSum",
+        "title": "Sequential burns equivalent to single burn of sum",
+        "type": "rule",
+        "notice": "Two sequential burns must be equivalent to a single burn of the sum of their\namounts.\nThis rule holds for `burnBatch` as well due to rules establishing \nappropriate equivance between `burn` and `burnBatch` methods."
+    },
+    {
+        "content": "/// The result of burning a single token must be equivalent whether done via\n/// burn or burnBatch.\nrule singleTokenBurnBurnBatchEquivalence {\n      storage beforeBurn = lastStorage;\n      env e;\n\n      address holder;\n      uint256 token; uint256 burnAmount;\n        uint256[] tokens; uint256[] burnAmounts;\n\n        mathint startingBalance = balanceOf(holder, token);\n\n      require tokens.length == 1; require burnAmounts.length == 1;\n      require tokens[0] == token; require burnAmounts[0] == burnAmount;\n\n      // burning via burn\n        burn(e, holder, token, burnAmount) at beforeBurn;\n        mathint burnBalanceChange = startingBalance - balanceOf(holder, token);\n\n      // burning via burnBatch\n      burnBatch(e, holder, tokens, burnAmounts) at beforeBurn;\n      mathint burnBatchBalanceChange = startingBalance - balanceOf(holder, token);\n\n        assert burnBalanceChange == burnBatchBalanceChange, \n              \"Burning a single token via burn or burnBatch must be equivalent\";\n}     ",
+        "id": "singleTokenBurnBurnBatchEquivalence",
+        "title": "Single token burn burn batch equivalence",
+        "type": "rule",
+        "notice": "The result of burning a single token must be equivalent whether done via\nburn or burnBatch."
+    },
+    {
+        "content": "/// The results of burning multiple tokens must be equivalent whether done \n/// separately via burn or together via burnBatch.\nrule multipleTokenBurnBurnBatchEquivalence {\n      storage beforeBurns = lastStorage;\n        env e;\n\n      address holder;\n      uint256 tokenA; uint256 tokenB; uint256 tokenC;\n        uint256 burnAmountA; uint256 burnAmountB; uint256 burnAmountC;\n        uint256[] tokens; uint256[] burnAmounts;\n\n        mathint startingBalanceA = balanceOf(holder, tokenA);\n        mathint startingBalanceB = balanceOf(holder, tokenB);\n      mathint startingBalanceC = balanceOf(holder, tokenC);\n\n      require tokens.length == 3; require burnAmounts.length == 3;\n      require tokens[0] == tokenA; require burnAmounts[0] == burnAmountA;\n        require tokens[1] == tokenB; require burnAmounts[1] == burnAmountB;\n      require tokens[2] == tokenC; require burnAmounts[2] == burnAmountC;\n\n      // burning via burn\n      burn(e, holder, tokenA, burnAmountA) at beforeBurns;\n      burn(e, holder, tokenB, burnAmountB);\n      burn(e, holder, tokenC, burnAmountC);\n        mathint burnBalanceChangeA = startingBalanceA - balanceOf(holder, tokenA);\n        mathint burnBalanceChangeB = startingBalanceB - balanceOf(holder, tokenB);\n        mathint burnBalanceChangeC = startingBalanceC - balanceOf(holder, tokenC);\n\n      // burning via burnBatch\n      burnBatch(e, holder, tokens, burnAmounts) at beforeBurns;\n      mathint burnBatchBalanceChangeA = startingBalanceA - balanceOf(holder, tokenA);\n      mathint burnBatchBalanceChangeB = startingBalanceB - balanceOf(holder, tokenB);\n        mathint burnBatchBalanceChangeC = startingBalanceC - balanceOf(holder, tokenC);\n\n        assert burnBalanceChangeA == burnBatchBalanceChangeA\n              && burnBalanceChangeB == burnBatchBalanceChangeB\n              && burnBalanceChangeC == burnBatchBalanceChangeC, \n                \"Burning multiple tokens via burn or burnBatch must be equivalent\";\n}",
+        "id": "multipleTokenBurnBurnBatchEquivalence",
+        "title": "Multiple token burn burn batch equivalence",
+        "type": "rule",
+        "notice": "The results of burning multiple tokens must be equivalent whether done \nseparately via burn or together via burnBatch."
+    },
+    {
+        "content": "/// If passed empty token and burn amount arrays, burnBatch must not change \n/// token balances or address permissions.\nrule burnBatchOnEmptyArraysChangesNothing {\n      uint256 token; address nonHolderA; address nonHolderB;\n\n      uint256 startingBalance = balanceOf(nonHolderA, token);\n      bool startingPermission = isApprovedForAll(nonHolderA, nonHolderB);\n\n      env e; address holder; uint256[] noTokens; uint256[] noBurnAmounts;\n      require noTokens.length == 0; require noBurnAmounts.length == 0;\n\n        burnBatch(e, holder, noTokens, noBurnAmounts);\n        \n      uint256 endingBalance = balanceOf(nonHolderA, token);\n      bool endingPermission = isApprovedForAll(nonHolderA, nonHolderB);\n\n      assert startingBalance == endingBalance, \n              \"burnBatch must not change token balances if passed empty arrays\";\n      assert startingPermission == endingPermission, \n              \"burnBatch must not change account permissions if passed empty arrays\";\n}",
+        "id": "burnBatchOnEmptyArraysChangesNothing",
+        "title": "Burn batch on empty arrays changes nothing",
+        "type": "rule",
+        "notice": "If passed empty token and burn amount arrays, burnBatch must not change \ntoken balances or address permissions."
+    }
 ]

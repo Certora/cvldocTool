@@ -1,70 +1,68 @@
 [
-  {
-    "type": "text",
-    "text": "## Verification of ERC1155Pausable\n\n`ERC1155Pausable` extends existing `Pausable` functionality by requiring that a\ncontract not be in a `paused` state prior to a token transfer.\n\n### Assumptions and Simplifications\n- Internal methods `_pause` and `_unpause` wrapped in CVT callable versions\n- Dummy functions created to verify `whenPaused` and `whenNotPaused` modifiers\n\n\n### Properties"
-  },
-  {
-    "type": "rule",
-    "id": "balancesUnchangedWhenPaused",
-    "title": "Balances unchanged when paused",
-    "content": "/// When a contract is in a paused state, the token balance for a given user and\n/// token must not change.\nrule balancesUnchangedWhenPaused() {\n    address user; uint256 token;\n    uint256 balanceBefore = balanceOf(user, token);\n\n    require paused();\n\n    method f; calldataarg arg; env e;\n    f(e, arg);\n\n    uint256 balanceAfter = balanceOf(user, token);\n\n    assert balanceBefore == balanceAfter, \n        \"Token balance for a user must not change in a paused contract\";\n}",
-    "notice": "When a contract is in a paused state, the token balance for a given user and\ntoken must not change."
-  },
-  {
-    "type": "rule",
-    "id": "transferMethodsRevertWhenPaused",
-    "title": "Transfer methods revert when paused",
-    "content": "/// When a contract is in a paused state, transfer methods must revert.\nrule transferMethodsRevertWhenPaused (method f)\nfiltered {\n    f -> f.selector == safeTransferFrom(address,address,uint256,uint256,bytes).selector\n      || f.selector == safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector\n}\n{\n    require paused();\n\n    env e; calldataarg args;\n    f@withrevert(e, args);\n\n    assert lastReverted, \n        \"Transfer methods must revert in a paused contract\";\n}",
-    "notice": "When a contract is in a paused state, transfer methods must revert.",
-    "params": [
-      {
-        "name": "f"
-      },
-      {
-        "type": "method"
-      }
-    ]
-  },
-  {
-    "type": "rule",
-    "id": "pauseMethodPausesContract",
-    "title": "Pause method pauses contract",
-    "content": "/// When a contract is in an unpaused state, calling pause() must pause.\nrule pauseMethodPausesContract {\n    require !paused();\n\n    env e;\n    pause(e);\n\n    assert paused(), \n        \"Calling pause must pause an unpaused contract\";\n}",
-    "notice": "When a contract is in an unpaused state, calling pause() must pause."
-  },
-  {
-    "type": "rule",
-    "id": "unpauseMethodUnpausesContract",
-    "title": "Unpause method unpauses contract",
-    "content": "/// When a contract is in a paused state, calling unpause() must unpause.\nrule unpauseMethodUnpausesContract {\n    require paused();\n\n    env e;\n    unpause(e);\n\n    assert !paused(), \n        \"Calling unpause must unpause a paused contract\";\n}",
-    "notice": "When a contract is in a paused state, calling unpause() must unpause."
-  },
-  {
-    "type": "rule",
-    "id": "cannotPauseWhilePaused",
-    "title": "Cannot pause while paused",
-    "content": "/// When a contract is in a paused state, calling pause() must revert.\nrule cannotPauseWhilePaused {\n    require paused();\n\n    env e;\n    pause@withrevert(e);\n\n    assert lastReverted, \n        \"A call to pause when already paused must revert\";\n}",
-    "notice": "When a contract is in a paused state, calling pause() must revert."
-  },
-  {
-    "type": "rule",
-    "id": "cannotUnpauseWhileUnpaused",
-    "title": "Cannot unpause while unpaused",
-    "content": "/// When a contract is in an unpaused state, calling unpause() must revert.\nrule cannotUnpauseWhileUnpaused {\n    require !paused();\n\n    env e;\n    unpause@withrevert(e);\n\n    assert lastReverted, \n        \"A call to unpause when already unpaused must revert\";\n}",
-    "notice": "When a contract is in an unpaused state, calling unpause() must revert."
-  },
-  {
-    "type": "rule",
-    "id": "whenNotPausedModifierCausesRevertIfPaused",
-    "title": "When not paused modifier causes revert if paused",
-    "content": "/// When a contract is in a paused state, functions with the whenNotPaused \n/// modifier must revert.\nrule whenNotPausedModifierCausesRevertIfPaused {\n    require paused();\n\n    env e; calldataarg args;\n    onlyWhenNotPausedMethod@withrevert(e, args);\n\n    assert lastReverted, \n        \"Functions with the whenNotPaused modifier must revert if the contract is paused\";\n}",
-    "notice": "When a contract is in an unpaused state, functions with the whenPaused \nmodifier must revert."
-  },
-  {
-    "type": "rule",
-    "id": "whenPausedModifierCausesRevertIfUnpaused",
-    "title": "When paused modifier causes revert if unpaused",
-    "content": "/// When a contract is in an unpaused state, functions with the whenPaused \n/// modifier must revert.\nrule whenPausedModifierCausesRevertIfUnpaused {\n    require !paused();\n\n    env e; calldataarg args;\n    onlyWhenPausedMethod@withrevert(e, args);\n\n    assert lastReverted, \n        \"Functions with the whenPaused modifier must revert if the contract is not paused\";\n}",
-    "notice": "When a contract is in an unpaused state, functions with the whenPaused \nmodifier must revert."
-  }
+    {
+        "type": "text",
+        "text": "## Verification of ERC1155Pausable\n\n`ERC1155Pausable` extends existing `Pausable` functionality by requiring that a\ncontract not be in a `paused` state prior to a token transfer.\n\n### Assumptions and Simplifications\n- Internal methods `_pause` and `_unpause` wrapped in CVT callable versions\n- Dummy functions created to verify `whenPaused` and `whenNotPaused` modifiers\n\n\n### Properties"
+    },
+    {
+        "content": "/// When a contract is in a paused state, the token balance for a given user and\n/// token must not change.\nrule balancesUnchangedWhenPaused() {\n        address user; uint256 token;\n      uint256 balanceBefore = balanceOf(user, token);\n\n      require paused();\n\n      method f; calldataarg arg; env e;\n      f(e, arg);\n\n      uint256 balanceAfter = balanceOf(user, token);\n\n      assert balanceBefore == balanceAfter, \n                \"Token balance for a user must not change in a paused contract\";\n}",
+        "id": "balancesUnchangedWhenPaused",
+        "title": "Balances unchanged when paused",
+        "type": "rule",
+        "notice": "When a contract is in a paused state, the token balance for a given user and\ntoken must not change."
+    },
+    {
+        "content": "/// When a contract is in a paused state, transfer methods must revert.\nrule transferMethodsRevertWhenPaused (method f)\nfiltered {\n      f -> f.selector == safeTransferFrom(address,address,uint256,uint256,bytes).selector\n            || f.selector == safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector\n}\n{\n      require paused();\n\n      env e; calldataarg args;\n      f@withrevert(e, args);\n\n      assert lastReverted, \n              \"Transfer methods must revert in a paused contract\";\n}",
+        "id": "transferMethodsRevertWhenPaused",
+        "title": "Transfer methods revert when paused",
+        "type": "rule",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ],
+        "notice": "When a contract is in a paused state, transfer methods must revert."
+    },
+    {
+        "content": "/// When a contract is in an unpaused state, calling pause() must pause.\nrule pauseMethodPausesContract {\n        require !paused();\n\n      env e;\n        pause(e);\n\n        assert paused(), \n                \"Calling pause must pause an unpaused contract\";\n}",
+        "id": "pauseMethodPausesContract",
+        "title": "Pause method pauses contract",
+        "type": "rule",
+        "notice": "When a contract is in an unpaused state, calling pause() must pause."
+    },
+    {
+        "content": "/// When a contract is in a paused state, calling unpause() must unpause.\nrule unpauseMethodUnpausesContract {\n        require paused();\n\n      env e;\n        unpause(e);\n\n      assert !paused(), \n                \"Calling unpause must unpause a paused contract\";\n}",
+        "id": "unpauseMethodUnpausesContract",
+        "title": "Unpause method unpauses contract",
+        "type": "rule",
+        "notice": "When a contract is in a paused state, calling unpause() must unpause."
+    },
+    {
+        "content": "/// When a contract is in a paused state, calling pause() must revert.\nrule cannotPauseWhilePaused {\n      require paused();\n\n      env e;\n        pause@withrevert(e);\n\n        assert lastReverted, \n              \"A call to pause when already paused must revert\";\n}",
+        "id": "cannotPauseWhilePaused",
+        "title": "Cannot pause while paused",
+        "type": "rule",
+        "notice": "When a contract is in a paused state, calling pause() must revert."
+    },
+    {
+        "content": "/// When a contract is in an unpaused state, calling unpause() must revert.\nrule cannotUnpauseWhileUnpaused {\n        require !paused();\n\n      env e;\n        unpause@withrevert(e);\n\n      assert lastReverted, \n              \"A call to unpause when already unpaused must revert\";\n}",
+        "id": "cannotUnpauseWhileUnpaused",
+        "title": "Cannot unpause while unpaused",
+        "type": "rule",
+        "notice": "When a contract is in an unpaused state, calling unpause() must revert."
+    },
+    {
+        "content": "/// When a contract is in a paused state, functions with the whenNotPaused \n/// modifier must revert.\nrule whenNotPausedModifierCausesRevertIfPaused {\n      require paused();\n\n        env e; calldataarg args;\n      onlyWhenNotPausedMethod@withrevert(e, args);\n\n        assert lastReverted, \n                \"Functions with the whenNotPaused modifier must revert if the contract is paused\";\n}",
+        "id": "whenNotPausedModifierCausesRevertIfPaused",
+        "title": "When not paused modifier causes revert if paused",
+        "type": "rule",
+        "notice": "When a contract is in an unpaused state, functions with the whenPaused \nmodifier must revert."
+    },
+    {
+        "content": "/// When a contract is in an unpaused state, functions with the whenPaused \n/// modifier must revert.\nrule whenPausedModifierCausesRevertIfUnpaused {\n        require !paused();\n\n      env e; calldataarg args;\n      onlyWhenPausedMethod@withrevert(e, args);\n\n      assert lastReverted, \n              \"Functions with the whenPaused modifier must revert if the contract is not paused\";\n}",
+        "id": "whenPausedModifierCausesRevertIfUnpaused",
+        "title": "When paused modifier causes revert if unpaused",
+        "type": "rule",
+        "notice": "When a contract is in an unpaused state, functions with the whenPaused \nmodifier must revert."
+    }
 ]

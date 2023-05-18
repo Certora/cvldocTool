@@ -1,63 +1,63 @@
 [
-  {
-    "type": "text",
-    "text": "## Verification of ERC1155Supply\n\n`ERC1155Supply` extends the `ERC1155` functionality. The contract creates a publicly callable `totalSupply` wrapper for the private `_totalSupply` method, a public `exists` method to check for a positive balance of a given token, and updates `_beforeTokenTransfer` to appropriately change the mapping `_totalSupply` in the context of minting and burning tokens.\n\n### Assumptions and Simplifications\n- The `exists` method was wrapped in the `exists_wrapper` method because `exists` is a keyword in CVL.\n- The public functions `burn`, `burnBatch`, `mint`, and `mintBatch` were implemented in the harnesssing contract make their respective internal functions callable by the CVL. This was used to test the increase and decrease of `totalSupply` when tokens are minted and burned. \n- We created the `onlyOwner` modifier to be used in the above functions so that they are not called in unrelated rules.\n\n### Properties"
-  },
-  {
-    "type": "rule",
-    "id": "token_totalSupply_independence",
-    "title": "Token total supply independence",
-    "content": "/// Given two different token ids, if totalSupply for one changes, then\n/// totalSupply for other must not.\nrule token_totalSupply_independence(method f)\nfiltered {\n    f -> f.selector != safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector\n}\n{\n    uint256 token1; uint256 token2;\n    require token1 != token2;\n\n    uint256 token1_before = totalSupply(token1);\n    uint256 token2_before = totalSupply(token2);\n\n    env e; calldataarg args;\n    require e.msg.sender != owner(); // owner can call mintBatch and burnBatch in our harness\n    f(e, args);\n\n    uint256 token1_after = totalSupply(token1);\n    uint256 token2_after = totalSupply(token2);\n\n    assert token1_after != token1_before => token2_after == token2_before,\n        \"methods must not change the total supply of more than one token\";\n}",
-    "notice": "Given two different token ids, if totalSupply for one changes, then\ntotalSupply for other must not.",
-    "params": [
-      {
-        "type": "method",
-        "name": "f"
-      }
-    ]
-  },
-  {
-    "type": "ghost variable",
-    "id": "sumOfBalances",
-    "params": [
-      {
-        "type": "uint256"
-      }
-    ],
-    "return": "mathint",
-    "content": "ghost mapping(uint256 => mathint) sumOfBalances {\n    init_state axiom forall uint256 token . sumOfBalances[token] == 0;\n}"
-  },
-  {
-    "type": "invariant",
-    "id": "total_supply_is_sum_of_balances",
-    "title": "Total supply is sum of balances",
-    "content": "/// The sum of the balances over all users must equal the total supply for a \n/// given token.\ninvariant total_supply_is_sum_of_balances(uint256 token)\n    sumOfBalances[token] == totalSupply(token)\n    {\n        preserved {\n            requireInvariant balanceOfZeroAddressIsZero(token);\n        }\n    }",
-    "notice": "The sum of the balances over all users must equal the total supply for a \ngiven token.",
-    "params": [
-      {
-        "type": "uint256",
-        "name": "token"
-      }
-    ]
-  },
-  {
-    "type": "invariant",
-    "id": "balanceOfZeroAddressIsZero",
-    "title": "Balance of zero address is zero",
-    "content": "/// The balance of a token for the zero address must be zero.\ninvariant balanceOfZeroAddressIsZero(uint256 token)\n    balanceOf(0, token) == 0",
-    "notice": "The balance of a token for the zero address must be zero.",
-    "params": [
-      {
-        "type": "uint256",
-        "name": "token"
-      }
-    ]
-  },
-  {
-    "type": "rule",
-    "id": "held_tokens_should_exist",
-    "title": "Held tokens should exist",
-    "content": "/// If a user has a token, then the token should exist.\nrule held_tokens_should_exist {\n    address user; uint256 token;\n\n    requireInvariant balanceOfZeroAddressIsZero(token);\n\n    // This assumption is safe because of total_supply_is_sum_of_balances\n    require balanceOf(user, token) <= totalSupply(token);\n\n    // note: `exists_wrapper` just calls `exists`\n    assert balanceOf(user, token) > 0 => exists_wrapper(token),\n        \"if a user's balance for a token is positive, the token must exist\";\n}",
-    "notice": "If a user has a token, then the token should exist."
-  }
+    {
+        "type": "text",
+        "text": "## Verification of ERC1155Supply\n\n`ERC1155Supply` extends the `ERC1155` functionality. The contract creates a publicly callable `totalSupply` wrapper for the private `_totalSupply` method, a public `exists` method to check for a positive balance of a given token, and updates `_beforeTokenTransfer` to appropriately change the mapping `_totalSupply` in the context of minting and burning tokens.\n\n### Assumptions and Simplifications\n- The `exists` method was wrapped in the `exists_wrapper` method because `exists` is a keyword in CVL.\n- The public functions `burn`, `burnBatch`, `mint`, and `mintBatch` were implemented in the harnesssing contract make their respective internal functions callable by the CVL. This was used to test the increase and decrease of `totalSupply` when tokens are minted and burned.\n- We created the `onlyOwner` modifier to be used in the above functions so that they are not called in unrelated rules.\n\n### Properties"
+    },
+    {
+        "content": "/// Given two different token ids, if totalSupply for one changes, then\n/// totalSupply for other must not.\nrule token_totalSupply_independence(method f)\nfiltered {\n        f -> f.selector != safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector\n}\n{\n        uint256 token1; uint256 token2;\n      require token1 != token2;\n\n        uint256 token1_before = totalSupply(token1);\n      uint256 token2_before = totalSupply(token2);\n\n        env e; calldataarg args;\n      require e.msg.sender != owner(); // owner can call mintBatch and burnBatch in our harness\n        f(e, args);\n\n      uint256 token1_after = totalSupply(token1);\n      uint256 token2_after = totalSupply(token2);\n\n      assert token1_after != token1_before => token2_after == token2_before,\n                \"methods must not change the total supply of more than one token\";\n}",
+        "id": "token_totalSupply_independence",
+        "title": "Token total supply independence",
+        "type": "rule",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ],
+        "notice": "Given two different token ids, if totalSupply for one changes, then\ntotalSupply for other must not.",
+    },
+    {
+        "type": "ghost variable",
+        "id": "sumOfBalances",
+        "params": [
+            {
+                "type": "uint256"
+            }
+        ],
+        "return": "mathint",
+        "content": "ghost mapping(uint256 => mathint) sumOfBalances {\n      init_state axiom forall uint256 token . sumOfBalances[token] == 0;\n}"
+    },
+    {
+        "content": "/// The sum of the balances over all users must equal the total supply for a \n/// given token.\ninvariant total_supply_is_sum_of_balances(uint256 token)\n      sumOfBalances[token] == totalSupply(token)\n        {\n                preserved {\n                        requireInvariant balanceOfZeroAddressIsZero(token);\n              }\n      }",
+        "id": "total_supply_is_sum_of_balances",
+        "title": "Total supply is sum of balances",
+        "type": "invariant",
+        "params": [
+            {
+                "type": "uint256",
+                "name": "token"
+            }
+        ],
+        "notice": "The sum of the balances over all users must equal the total supply for a \ngiven token."
+    },
+    {
+        "content": "/// The balance of a token for the zero address must be zero.\ninvariant balanceOfZeroAddressIsZero(uint256 token)\n        balanceOf(0, token) == 0",
+        "id": "balanceOfZeroAddressIsZero",
+        "title": "Balance of zero address is zero",
+        "type": "invariant",
+        "params": [
+            {
+                "type": "uint256",
+                "name": "token"
+            }
+        ],
+        "notice": "The balance of a token for the zero address must be zero."
+    },
+    {
+        "content": "/// If a user has a token, then the token should exist.\nrule held_tokens_should_exist {\n      address user; uint256 token;\n\n        requireInvariant balanceOfZeroAddressIsZero(token);\n\n      // This assumption is safe because of total_supply_is_sum_of_balances\n        require balanceOf(user, token) <= totalSupply(token);\n\n        // note: `exists_wrapper` just calls `exists`\n        assert balanceOf(user, token) > 0 => exists_wrapper(token),\n                \"if a user's balance for a token is positive, the token must exist\";\n}",
+        "id": "held_tokens_should_exist",
+        "title": "Held tokens should exist",
+        "type": "rule",
+        "notice": "If a user has a token, then the token should exist."
+    }
 ]
