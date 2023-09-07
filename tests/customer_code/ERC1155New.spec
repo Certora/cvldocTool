@@ -1,4 +1,4 @@
-import "ERC1155.spec"
+import "ERC1155.spec";
 
 //// ## Verification of ERC1155
 //// 

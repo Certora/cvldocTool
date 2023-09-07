@@ -12,12 +12,12 @@
             {
                 "type": "address",
                 "name": "a",
-                "comment": "a sender's address"
+                "comment": "sender's address"
             },
             {
                 "type": "uint",
                 "name": "i",
-                "comment": "i the value that is tested."
+                "comment": "the value that is tested."
             }
         ],
         "return": {

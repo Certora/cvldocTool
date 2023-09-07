@@ -11,17 +11,17 @@
 
 
 methods {
-    totalSupply(uint256) returns uint256 envfree
-    balanceOf(address, uint256) returns uint256 envfree
-    exists_wrapper(uint256) returns bool envfree
-    owner() returns address envfree
+    function totalSupply(uint256) external returns uint256 envfree;
+    function balanceOf(address, uint256) external returns uint256 envfree;
+    function exists_wrapper(uint256) external returns bool envfree;
+    function owner() external returns address envfree;
 }
  
 /// Given two different token ids, if totalSupply for one changes, then
 /// totalSupply for other must not.
 rule token_totalSupply_independence(method f)
 filtered {
-    f -> f.selector != safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector
+    f -> f.selector != safeBatchTransferFrom(address,address,uint256[1],uint256[1],bytes).selector
 }
 {
     uint256 token1; uint256 token2;
@@ -65,7 +65,7 @@ invariant total_supply_is_sum_of_balances(uint256 token)
 
 /// The balance of a token for the zero address must be zero.
 invariant balanceOfZeroAddressIsZero(uint256 token)
-    balanceOf(0, token) == 0
+    balanceOf(0, token) == 0;
 
 /// If a user has a token, then the token should exist.
 rule held_tokens_should_exist {

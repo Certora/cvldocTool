@@ -4,7 +4,7 @@
         "text": "## Verification of Initializable\n\n`Initializable` is a contract used to make constructors for upgradeable\ncontracts. This is accomplished by applying the `initializer` modifier to any\nfunction that serves as a constructor, which makes this function only\ncallable once. The secondary modifier `reinitializer` allows for upgrades\nthat change the contract's initializations.\n\n\n### Assumptions and Simplifications\nWe assume `initializer()` and `reinitializer(1)` are equivalent if they\nboth guarentee `_initialized` to be set to 1 after a successful call. This\nallows us to use `reinitializer(n)` as a general version that also handles\nthe regular `initialzer` case.\n\n#### Harnessing\nTwo harness versions were implemented, a simple flat contract, and a\nMulti-inheriting contract. The two versions together help us ensure there are\nNo unexpected results because of different implementions. Initializable can\nBe used in many different ways but we believe these 2 cases provide good\nCoverage for all cases. In both harnesses we use getter functions for\n`_initialized` and `_initializing` and implement  `initializer` and\n`reinitializer` functions that use their respective modifiers. We also\nImplement some versioned functions that are only callable in specific\nVersions of the contract to mimick upgrading contracts.\n\n#### Munging\nVariables `_initialized` and `_initializing` were changed to have internal\nvisibility to be harnessable."
     },
     {
-        "content": "methods {\n    initialize(uint256, uint256, uint256) envfree\n    reinitialize(uint256, uint256, uint256, uint8) envfree\n    initialized() returns uint8 envfree\n    initializing() returns bool envfree\n    thisIsContract() returns bool envfree\n\n    returnsV1() returns uint256 envfree\n    returnsVN(uint8) returns uint256 envfree\n    returnsAV1() returns uint256 envfree\n    returnsAVN(uint8) returns uint256 envfree\n    returnsBV1() returns uint256 envfree\n    returnsBVN(uint8) returns uint256 envfree\n    a() returns uint256 envfree\n    b() returns uint256 envfree\n    val() returns uint256 envfree\n}",
+        "content": "methods {\n    function initialize(uint256, uint256, uint256) external envfree;\n    function reinitialize(uint256, uint256, uint256, uint8) external envfree;\n    function initialized() external returns uint8 envfree;\n    function initializing() external returns bool envfree;\n    function thisIsContract() external returns bool envfree;\n\n    function returnsV1() external returns uint256 envfree;\n    function returnsVN(uint8) external returns uint256 envfree;\n    function returnsAV1() external returns uint256 envfree;\n    function returnsAVN(uint8) external returns uint256 envfree;\n    function returnsBV1() external returns uint256 envfree;\n    function returnsBVN(uint8) external returns uint256 envfree;\n    function a() external returns uint256 envfree;\n    function b() external returns uint256 envfree;\n    function val() external returns uint256 envfree;\n}",
         "type": "methods"
     },
     {
@@ -81,11 +81,19 @@
         "text": "### Properties"
     },
     {
-        "content": "/// A contract must only ever be in an initializing state while in the middle\n/// of a transaction execution.\ninvariant notInitializing()\n    !initializing()",
+        "type": "text",
+        "text": "Invariants"
+    },
+    {
+        "content": "/// A contract must only ever be in an initializing state while in the middle\n/// of a transaction execution.\ninvariant notInitializing()\n    !initializing();",
         "type": "invariant",
         "id": "notInitializing",
         "title": "Not initializing",
         "notice": "A contract must only ever be in an initializing state while in the middle\nof a transaction execution."
+    },
+    {
+        "type": "text",
+        "text": "Rules"
     },
     {
         "content": "/// @title Only initialized once\n/// @notice An initializable contract with a function that inherits the\n///         initializer modifier must be initializable only once\nrule initOnce() {\n    uint256 val; uint256 a; uint256 b;\n\n    require isInitialized();\n    initialize@withrevert(val, a, b);\n    assert lastReverted, \"contract must only be initialized once\";\n}",

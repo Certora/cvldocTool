@@ -1,10 +1,18 @@
 [
     {
+        "content": "import \"GovernorCountingSimple.spec\";",
+        "type": "import"
+    },
+    {
+        "content": "using ERC721VotesHarness as erc721votes;",
+        "type": "using"
+    },
+    {
         "type": "text",
         "text": "## Verification of GovernorPreventLateQuorum\n\n`GovernorPreventLateQuorum` extends the Governor group of contracts to add the\nfeature of giving voters more time to vote in the case that a proposal reaches\nquorum with less than `voteExtension` amount of time left to vote.\n\n### Assumptions and Simplifications\n\nNone\n\n#### Harnessing\n- The contract that the specification was verified against is\n`GovernorPreventLateQuorumHarness`, which inherits from all of the Governor\ncontracts \u2014 excluding Compound variations \u2014 and implements a number of view\nfunctions to gain access to values that are impossible/difficult to access in\nCVL. It also implements all of the required functions not implemented in the\nabstract contracts it inherits from.\n\n- `_castVote` was overriden to add an additional flag before calling the parent\nversion. This flag stores the `block.number` in a variable\n`latestCastVoteCall` and is used as a way to check when any of variations of\n`castVote` are called.\n\n#### Munging\n\n- Various variables' visibility was changed from private to internal or from\ninternal to public throughout the Governor contracts in order to make them\naccessible in the spec.\n\n- Arbitrary low level calls are assumed to change nothing and thus the function\n`_execute` is changed to do nothing. The tool normally havocs in this\nsituation, assuming all storage can change due to possible reentrancy. We\nassume, however, there is no risk of reentrancy because `_execute` is a\nprotected call locked behind the timelocked governance vote. All other\ngovernance functions are verified separately."
     },
     {
-        "content": "methods {\n    quorumDenominator() returns uint256 envfree\n    votingPeriod() returns uint256 envfree\n    lateQuorumVoteExtension() returns uint64 envfree\n    propose(address[], uint256[], bytes[], string)\n\n    // harness\n    getExtendedDeadlineIsUnset(uint256) returns bool envfree\n    getExtendedDeadlineIsStarted(uint256) returns bool envfree\n    getExtendedDeadline(uint256) returns uint64 envfree\n    getAgainstVotes(uint256) returns uint256 envfree\n    getAbstainVotes(uint256) returns uint256 envfree\n    getForVotes(uint256) returns uint256 envfree\n    \n    // more robust check than f.selector == _castVote(...).selector\n    latestCastVoteCall() returns uint256 envfree \n\n    // timelock dispatch\n    getMinDelay() returns uint256 => DISPATCHER(true)\n    \n    hashOperationBatch(address[], uint256[], bytes[], bytes32, bytes32) => DISPATCHER(true)\n    executeBatch(address[], uint256[], bytes[], bytes32, bytes32) => CONSTANT\n    scheduleBatch(address[], uint256[], bytes[], bytes32, bytes32, uint256) => CONSTANT\n}",
+        "content": "methods {\n    function quorumDenominator() external returns uint256 envfree;\n    function votingPeriod() external returns uint256 envfree;\n    function lateQuorumVoteExtension() external returns uint64 envfree;\n    function propose(address[], uint256[], bytes[], string) external;\n\n    // harness\n    function getExtendedDeadlineIsUnset(uint256) external returns bool envfree;\n    function getExtendedDeadlineIsStarted(uint256) external returns bool envfree;\n    function getExtendedDeadline(uint256) external returns uint64 envfree;\n    function getAgainstVotes(uint256) external returns uint256 envfree;\n    function getAbstainVotes(uint256) external returns uint256 envfree;\n    function getForVotes(uint256) external returns uint256 envfree;\n    \n    // more robust check than f.selector == _castVote(...).selector\n    function latestCastVoteCall() external returns uint256 envfree ;\n\n    // timelock dispatch\n    function getMinDelay() external returns uint256 => DISPATCHER(true);\n    \n    function hashOperationBatch(address[], uint256[], bytes[], bytes32, bytes32) external => DISPATCHER(true);\n    function executeBatch(address[], uint256[], bytes[], bytes32, bytes32) external  => CONSTANT;\n    function scheduleBatch(address[], uint256[], bytes[], bytes32, bytes32, uint256) external  => CONSTANT;\n}",
         "type": "methods"
     },
     {
@@ -109,7 +117,7 @@
         "text": "### Properties"
     },
     {
-        "content": "/**\n * If a proposal has reached quorum then the proposal snapshot (start `block.number`) must be non-zero\n * @dev INVARIANT NOT PASSING // fails for updateQuorumNumerator and in the initial state when voting token total supply is 0 (causes quoromReached to return true)\n * @dev ADVANCED SANITY NOT RAN\n */ \ninvariant quorumReachedEffect(env e, uint256 pId)\n    quorumReached(e, pId) => proposalCreated(pId)",
+        "content": "/**\n * If a proposal has reached quorum then the proposal snapshot (start `block.number`) must be non-zero\n * @dev INVARIANT NOT PASSING // fails for updateQuorumNumerator and in the initial state when voting token total supply is 0 (causes quoromReached to return true)\n * @dev ADVANCED SANITY NOT RAN\n */ \ninvariant quorumReachedEffect(env e, uint256 pId)\n    quorumReached(e, pId) => proposalCreated(pId);",
         "type": "invariant",
         "id": "quorumReachedEffect",
         "title": "Quorum reached effect",
@@ -127,7 +135,7 @@
         "dev": "INVARIANT NOT PASSING // fails for updateQuorumNumerator and in the initial state when voting token total supply is 0 (causes quoromReached to return true)\nADVANCED SANITY NOT RAN"
     },
     {
-        "content": "/**\n * A non-existant proposal must meet the definition of one.\n * @dev INVARIANT NOT PASSING // fails for updateQuorumNumerator and in the initial state when voting token total supply is 0 (causes quoromReached to return true)\n * @dev ADVANCED SANITY NOT RAN\n */\ninvariant proposalNotCreatedEffects(env e, uint256 pId)\n    !proposalCreated(pId) => proposalNotCreated(e, pId)",
+        "content": "/**\n * A non-existant proposal must meet the definition of one.\n * @dev INVARIANT NOT PASSING // fails for updateQuorumNumerator and in the initial state when voting token total supply is 0 (causes quoromReached to return true)\n * @dev ADVANCED SANITY NOT RAN\n */\ninvariant proposalNotCreatedEffects(env e, uint256 pId)\n    !proposalCreated(pId) => proposalNotCreated(e, pId);",
         "type": "invariant",
         "id": "proposalNotCreatedEffects",
         "title": "Proposal not created effects",

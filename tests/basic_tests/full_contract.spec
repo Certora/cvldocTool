@@ -7,19 +7,19 @@
 
 
 methods {
-    get5() returns uint envfree
-    init_state() envfree
-    setX(uint256) envfree
-    getX() returns uint envfree
-    getXCanRevert(uint256) returns uint envfree
-    twoReturns(uint256) returns (uint256,uint256) envfree
-    threeReturns(uint256,uint256) returns (uint256,uint256,uint256)
+    function get5() external returns uint envfree;
+    function init_state() external envfree;
+    function setX(uint256) external envfree;
+    function getX() external returns uint envfree;
+    function getXCanRevert(uint256) external returns uint envfree;
+    function twoReturns(uint256) external returns (uint256,uint256) envfree;
+    function threeReturns(uint256,uint256) external returns (uint256,uint256,uint256);
 }
 
 /**
  * @title takeTwoEnvs function
- * @param e1 - first environment
- * @param e2 - second environment
+ * @param e1 first environment
+ * @param e2 second environment
  **/
 function takeTwoEnvs(env e1, env e2) {
     require e1.msg.value == 0;

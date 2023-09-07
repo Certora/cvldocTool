@@ -4,7 +4,7 @@
         "text": "# Natspec for rules.\n## A testing file for rules definitions comments.\n## it contains rules with and without parameters"
     },
     {
-        "content": "/**\n  * @title Simple rule for checking authorizations\n  * @notice  getting two addresses and a method.\n  * checking if the sender is autorise to run the method.\n  * @dev Note: this is a parametric rule.\n  * @param d - the address of the sender\n  * @param x - the address of the function invoker\n  * @param f - the function to be invoked.\n  **/\nrule simple(address d, address x, method f) {\n\n\tenv eF;\n\tcalldataarg arg;\n\tif (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {\n\t       require (eF.msg.sender == x);\n           sinvoke authorizeVoteSigner(eF,d);\n\t}\n\telse {\n\t\t\t\tsinvoke f(eF,arg);\n\t}\n\tassert false;\n\n}",
+        "content": "/**\n  * @title Simple rule for checking authorizations\n  * @notice  getting two addresses and a method.\n  * checking if the sender is autorise to run the method.\n  * @dev Note: this is a parametric rule.\n  * @param d the address of the sender\n  * @param x the address of the function invoker\n  * @param f the function to be invoked.\n  **/\nrule simple(address d, address x, method f) {\n\n\tenv eF;\n\tcalldataarg arg;\n\tif (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {\n\t       require (eF.msg.sender == x);\n           authorizeVoteSigner(eF,d);\n\t}\n\telse {\n\t\t\t\tf(eF,arg);\n\t}\n\tassert false;\n\n}",
         "type": "rule",
         "id": "simple",
         "title": "Simple rule for checking authorizations",
@@ -12,24 +12,24 @@
             {
                 "type": "address",
                 "name": "d",
-                "comment": "d - the address of the sender"
+                "comment": "the address of the sender"
             },
             {
                 "type": "address",
                 "name": "x",
-                "comment": "x - the address of the function invoker"
+                "comment": "the address of the function invoker"
             },
             {
                 "type": "method",
                 "name": "f",
-                "comment": "f - the function to be invoked."
+                "comment": "the function to be invoked."
             }
         ],
         "notice": " getting two addresses and a method.\nchecking if the sender is autorise to run the method.",
         "dev": "Note: this is a parametric rule."
     },
     {
-        "content": "/** # simple2 - another simple rule.\n  * @title Selector rule.\n  * @dev this rule is testing the sinvoke function.\n  * @param d the address of the sender.\n  * @param x the address of the receiver\n  * @param ff - this doesn't exist.\n  **/\nrule simple2(address d, address x, method f) {\n\tcalldataarg arg;\n\tif (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {\n\t       env eF;\n\t\t   require (eF.msg.sender == x);\n           sinvoke authorizeVoteSigner(eF,d);\n\t}\n\telse if(!f.isFallback && f.selector == createAccount().selector) {\n\t\tenv eF;\n\t\tsinvoke createAccount(eF);\n\t}\n\telse {\n\t\t\tenv eF;\n\t\t\tsinvoke f(eF,arg);\n\t}\n\tassert false;\n}",
+        "content": "/** # simple2 - another simple rule.\n  * @title Selector rule.\n  * @dev this rule is testing the sinvoke function.\n  * @param d the address of the sender.\n  * @param x the address of the receiver\n  * @param ff this doesn't exist.\n  **/\nrule simple2(address d, address x, method f) {\n\tcalldataarg arg;\n\tif (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {\n\t       env eF;\n\t\t   require (eF.msg.sender == x);\n           authorizeVoteSigner(eF,d);\n\t}\n\telse if(!f.isFallback && f.selector == createAccount().selector) {\n\t\tenv eF;\n\t\tcreateAccount(eF);\n\t}\n\telse {\n\t\t\tenv eF;\n\t\t\tf(eF,arg);\n\t}\n\tassert false;\n}",
         "type": "rule",
         "id": "simple2",
         "title": "Selector rule.",
@@ -37,12 +37,12 @@
             {
                 "type": "address",
                 "name": "d",
-                "comment": "d the address of the sender."
+                "comment": "the address of the sender."
             },
             {
                 "type": "address",
                 "name": "x",
-                "comment": "x the address of the receiver"
+                "comment": "the address of the receiver"
             },
             {
                 "type": "method",
@@ -53,7 +53,7 @@
         "dev": "this rule is testing the sinvoke function."
     },
     {
-        "content": "/**\n  * @title simple3 - another simple rule.\n  * @notice this is a very short and simple rule\n  * @dev this rule is testing the sinvoke function.\n  * @param d the first address.\n  * @param x the second address.\n  * @param f - the method that is being tested.\n  **/\nrule simple3(address d, address x, method f) {\n\tcallF(d,x,f);\n\tassert false;\n}",
+        "content": "/**\n  * @title simple3 - another simple rule.\n  * @notice this is a very short and simple rule\n  * @dev this rule is testing the sinvoke function.\n  * @param d the first address.\n  * @param x the second address.\n  * @param f the method that is being tested.\n  **/\nrule simple3(address d, address x, method f) {\n\tcallF(d,x,f);\n\tassert false;\n}",
         "type": "rule",
         "id": "simple3",
         "title": "simple3 - another simple rule.",
@@ -61,17 +61,17 @@
             {
                 "type": "address",
                 "name": "d",
-                "comment": "d the first address."
+                "comment": "the first address."
             },
             {
                 "type": "address",
                 "name": "x",
-                "comment": "x the second address."
+                "comment": "the second address."
             },
             {
                 "type": "method",
                 "name": "f",
-                "comment": "f - the method that is being tested."
+                "comment": "the method that is being tested."
             }
         ],
         "notice": "this is a very short and simple rule",

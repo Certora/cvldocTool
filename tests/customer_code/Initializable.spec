@@ -29,21 +29,21 @@
 //// visibility to be harnessable.
     
 methods {
-    initialize(uint256, uint256, uint256) envfree
-    reinitialize(uint256, uint256, uint256, uint8) envfree
-    initialized() returns uint8 envfree
-    initializing() returns bool envfree
-    thisIsContract() returns bool envfree
+    function initialize(uint256, uint256, uint256) external envfree;
+    function reinitialize(uint256, uint256, uint256, uint8) external envfree;
+    function initialized() external returns uint8 envfree;
+    function initializing() external returns bool envfree;
+    function thisIsContract() external returns bool envfree;
 
-    returnsV1() returns uint256 envfree
-    returnsVN(uint8) returns uint256 envfree
-    returnsAV1() returns uint256 envfree
-    returnsAVN(uint8) returns uint256 envfree
-    returnsBV1() returns uint256 envfree
-    returnsBVN(uint8) returns uint256 envfree
-    a() returns uint256 envfree
-    b() returns uint256 envfree
-    val() returns uint256 envfree
+    function returnsV1() external returns uint256 envfree;
+    function returnsVN(uint8) external returns uint256 envfree;
+    function returnsAV1() external returns uint256 envfree;
+    function returnsAVN(uint8) external returns uint256 envfree;
+    function returnsBV1() external returns uint256 envfree;
+    function returnsBVN(uint8) external returns uint256 envfree;
+    function a() external returns uint256 envfree;
+    function b() external returns uint256 envfree;
+    function val() external returns uint256 envfree;
 }
 
 
@@ -72,17 +72,17 @@ definition isDisabled() returns bool = initialized() == 255;
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// Invariants                            /////////////////////////////////////
+//// Invariants                            ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
 /// A contract must only ever be in an initializing state while in the middle
 /// of a transaction execution.
 invariant notInitializing()
-    !initializing()
+    !initializing();
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Rules                                 /////////////////////////////////////
+//// Rules                                 ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
 /// @title Only initialized once

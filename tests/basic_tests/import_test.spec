@@ -5,12 +5,12 @@
  * @notice this is part of the Vax project..
  * @dev no backward compatibility  to version 1.0
  */
-import "./../_common/Helpers.spec"
+import "./../_common/Helpers.spec";
 
 /**
   * @title  base.spec
   * @notice Imports all the elements defined in "base.spec", excluding rules and invariants
   */
-import "base.spec"
+import "base.spec";
 
 

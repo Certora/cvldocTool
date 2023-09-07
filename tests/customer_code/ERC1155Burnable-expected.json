@@ -4,7 +4,7 @@
         "text": "## Verification of ERC1155Burnable\n\n`ERC1155Burnable` extends the `ERC1155` functionality by wrapping the internal\nmethods `_burn` and `_burnBatch` in the public methods `burn` and `burnBatch`,\nadding a requirement that the caller of either method be the account holding\nthe tokens or approved to act on that account's behalf.\n\n### Assumptions and Simplifications\n\n- No changes made using the harness\n\n### Properties"
     },
     {
-        "content": "methods {\n    balanceOf(address, uint256) returns uint256 envfree\n    isApprovedForAll(address,address) returns bool envfree\n}",
+        "content": "methods {\n    function balanceOf(address, uint256) external returns uint256 envfree;\n    function isApprovedForAll(address,address) external returns bool envfree;\n}",
         "type": "methods"
     },
     {

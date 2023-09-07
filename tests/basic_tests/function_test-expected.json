@@ -4,45 +4,45 @@
         "text": "#  Function testing.\n# This function is testing the invoking process\n# part of the Fahrenheit project"
     },
     {
-        "content": "/**\n * @title Callf authorization function.\n * @notice this function is part of the project and\n * performing authorization checks on some addresses.\n * @dev  the function is assuming the declaration  of 'autorizeVoteSigner'\n * function.\n * @param d the first address\n * @param x the unkown signer address\n * @param f the signing function.\n */\nfunction callF(address d, address x, method f) {\n\tif (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {\n\t    env eF;\n\t\trequire (eF.msg.sender == x);\n        sinvoke authorizeVoteSigner(eF,d);\n\t}\n\telse if(!f.isFallback && f.selector == createAccount().selector) {\n\t\tenv eF;\n\t\tsinvoke createAccount(eF);\n\t}\n\telse {\n\t\t\tcalldataarg arg;\n\t\t\tenv eF;\n\t\t\tsinvoke f(eF,arg);\n\t}\n}",
+        "content": "/**\n * @title Callf authorization function.\n * @notice this function is part of the project and\n * performing authorization checks on some addresses.\n * @dev  the function is assuming the declaration  of 'autorizeVoteSigner'\n * function.\n * @param d the first address\n * @param x the unkown signer address\n * @param f the signing function.\n */\nfunction callF(address d, address x, method f) {\n\tif (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {\n\t    env eF;\n\t\trequire (eF.msg.sender == x);\n        authorizeVoteSigner(eF,d);\n\t}\n\telse if(!f.isFallback && f.selector == createAccount().selector) {\n\t\tenv eF;\n\t\tcreateAccount(eF);\n\t}\n\telse {\n\t\t\tcalldataarg arg;\n\t\t\tenv eF;\n\t\t\tf(eF,arg);\n\t}\n}",
+        "type": "function",
         "id": "callF",
         "title": "Callf authorization function.",
-        "type": "function",
         "params": [
             {
                 "type": "address",
                 "name": "d",
-                "comment": "d the first address"
+                "comment": "the first address"
             },
             {
                 "type": "address",
                 "name": "x",
-                "comment": "x the unkown signer address"
+                "comment": "the unkown signer address"
             },
             {
                 "type": "method",
                 "name": "f",
-                "comment": "f the signing function."
+                "comment": "the signing function."
             }
         ],
         "notice": "this function is part of the project and\nperforming authorization checks on some addresses.",
         "dev": "the function is assuming the declaration  of 'autorizeVoteSigner'\nfunction."
     },
     {
-        "content": "/**\n * @title getVoterAge - get voter age.\n * @notice this function decides if the sender is old enough to vote\n * it uses the getFullVoterDetails function.\n * @dev  the function is assuming the declaration  of 'getFullVoterDetails'\n * function.\n * @param e the used environment\n * @param voter - the prospect voter address\n * @return the voter age.\n */\nfunction getVoterAge(env e, address voter) returns uint8 {\n    uint8 age;\n    age, _, _ = getFullVoterDetails(e, voter);\n    return age;\n}",
+        "content": "/**\n * @title getVoterAge - get voter age.\n * @notice this function decides if the sender is old enough to vote\n * it uses the getFullVoterDetails function.\n * @dev  the function is assuming the declaration  of 'getFullVoterDetails'\n * function.\n * @param e the used environment\n * @param voter the prospect voter address\n * @return the voter age.\n */\nfunction getVoterAge(env e, address voter) returns uint8 {\n    uint8 age;\n    age, _, _ = getFullVoterDetails(e, voter);\n    return age;\n}",
+        "type": "function",
         "id": "getVoterAge",
         "title": "getVoterAge - get voter age.",
-        "type": "function",
         "params": [
             {
                 "type": "env",
                 "name": "e",
-                "comment": "e the used environment"
+                "comment": "the used environment"
             },
             {
                 "type": "address",
                 "name": "voter",
-                "comment": "voter - the prospect voter address"
+                "comment": "the prospect voter address"
             }
         ],
         "return": {
@@ -53,20 +53,20 @@
         "dev": "the function is assuming the declaration  of 'getFullVoterDetails'\nfunction."
     },
     {
-        "content": "/**\n * @title getRegistered - get registered.\n * @dev  the function is assuming the declaration  of 'getFullVoterDetails'\n * function.\n * @param e the used environment\n * @param voter - the prospect voter address\n * @return indication if the voter is registered.\n */\n function getRegistered(env e, address voter) returns bool {\n    bool isReg;\n    _, isReg, _ = getFullVoterDetails(e, voter);\n    return isReg;\n}",
+        "content": "/**\n * @title getRegistered - get registered.\n * @dev  the function is assuming the declaration  of 'getFullVoterDetails'\n * function.\n * @param e the used environment\n * @param voter the prospect voter address\n * @return indication if the voter is registered.\n */\n function getRegistered(env e, address voter) returns bool {\n    bool isReg;\n    _, isReg, _ = getFullVoterDetails(e, voter);\n    return isReg;\n}",
+        "type": "function",
         "id": "getRegistered",
         "title": "getRegistered - get registered.",
-        "type": "function",
         "params": [
             {
                 "type": "env",
                 "name": "e",
-                "comment": "e the used environment"
+                "comment": "the used environment"
             },
             {
                 "type": "address",
                 "name": "voter",
-                "comment": "voter - the prospect voter address"
+                "comment": "the prospect voter address"
             }
         ],
         "return": {

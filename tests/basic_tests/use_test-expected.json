@@ -1,6 +1,12 @@
 [
     {
-        "type": "unknown",
-        "title": "twoParametricRuleInBase"
+        "type": "text",
+        "text": "use_test.spec  = NatSpec test file for 'use' statement.\nsome use statements gathere from the testing folder."
+    },
+    {
+        "content": "/**\n  * @title twoParametricRuleInBase\n  * @dev  Override the filter of f and Add a filter to g (using an overridden definition)\n  */\n use rule twoParametricRuleInBase filtered { f -> isPlusSevenSomeUInt(f),\n                                            g -> filterDef(g)\n                                          }",
+        "type": "use",
+        "title": "twoParametricRuleInBase",
+        "dev": "Override the filter of f and Add a filter to g (using an overridden definition)"
     }
 ]

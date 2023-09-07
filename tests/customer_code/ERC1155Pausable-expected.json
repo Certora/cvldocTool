@@ -4,7 +4,7 @@
         "text": "## Verification of ERC1155Pausable\n\n`ERC1155Pausable` extends existing `Pausable` functionality by requiring that a\ncontract not be in a `paused` state prior to a token transfer.\n\n### Assumptions and Simplifications\n- Internal methods `_pause` and `_unpause` wrapped in CVT callable versions\n- Dummy functions created to verify `whenPaused` and `whenNotPaused` modifiers\n\n\n### Properties"
     },
     {
-        "content": "methods {\n    balanceOf(address, uint256) returns uint256 envfree\n    paused() returns bool envfree\n}",
+        "content": "methods {\n    function balanceOf(address, uint256) external returns uint256 envfree;\n    function paused() external returns bool envfree;\n}",
         "type": "methods"
     },
     {
@@ -15,7 +15,7 @@
         "notice": "When a contract is in a paused state, the token balance for a given user and\ntoken must not change."
     },
     {
-        "content": "/// When a contract is in a paused state, transfer methods must revert.\nrule transferMethodsRevertWhenPaused (method f)\nfiltered {\n    f -> f.selector == safeTransferFrom(address,address,uint256,uint256,bytes).selector\n      || f.selector == safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector\n}\n{\n    require paused();\n\n    env e; calldataarg args;\n    f@withrevert(e, args);\n\n    assert lastReverted, \n        \"Transfer methods must revert in a paused contract\";\n}",
+        "content": "/// When a contract is in a paused state, transfer methods must revert.\nrule transferMethodsRevertWhenPaused (method f)\nfiltered {\n    f -> f.selector == safeTransferFrom(address,address,uint256,uint256,bytes).selector\n      || f.selector == safeBatchTransferFrom(address,address,uint256[1],uint256[1],bytes).selector\n}\n{\n    require paused();\n\n    env e; calldataarg args;\n    f@withrevert(e, args);\n\n    assert lastReverted, \n        \"Transfer methods must revert in a paused contract\";\n}",
         "type": "rule",
         "id": "transferMethodsRevertWhenPaused",
         "title": "Transfer methods revert when paused",

@@ -13,3 +13,5 @@ target
 __pycache__/
 *.so
 .cache
+.DS_Store
+.vscode

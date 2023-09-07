@@ -34,15 +34,15 @@ invariant totalSupply_vs_balance()
  * @title proxyNotZero
  * @notice make sure that the proxy is not zero.
  * @dev make use of 'getOrCreateProxy'
- * @param a = proxy address
+ * @param a proxy address
 */
-invariant proxyNotZero(address a) getOrCreateProxy(a) != 0
+invariant proxyNotZero(address a) getOrCreateProxy(a) != 0;
 
 /**
  * @title check - check all addresses.
  * @dev make use of 'getVoteSigner' and 'isAccount'
- * @param x = source address
- * @param d = destination address
+ * @param x source address
+ * @param d destination address
 */
 invariant check(address x, address d)
-		!sinvoke isAccount(x) && sinvoke getVoteSigner(x)==d  => d==0
+		!isAccount(x) && getVoteSigner(x)==d  => d==0;

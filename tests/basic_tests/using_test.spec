@@ -3,10 +3,10 @@
 /**
   * @dev bad contract abbreviation
   */
-using BadContract as bc
+using BadContract as bc;
 
 /**
   * @title DummyERC20A
   * @dev Contract A !
   */
-using DummyERC20A as tokenA
+using DummyERC20A as tokenA;
