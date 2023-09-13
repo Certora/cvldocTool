@@ -7,13 +7,13 @@ commands:
 
   test_package:
     steps:
-      - run: pip install pytest deepdiff inflection
-      - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==1.0.1
+      - run: pip install pytest deepdiff inflection loguru
+      - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==2.0.0
       - run:
           name: "run tests"
           command: |
             cd tests
-            pytest natspec_tests.py
+            pytest cvldoc_tests.py
 
   upgrade_pip:
     steps:
