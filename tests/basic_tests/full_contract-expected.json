@@ -4,11 +4,11 @@
         "text": "# testing the NatSpec parser.\nThis is made by Gabriel  it contains all\nknown tags"
     },
     {
-        "content": "methods {\n    get5() returns uint envfree\n    init_state() envfree\n    setX(uint256) envfree\n    getX() returns uint envfree\n    getXCanRevert(uint256) returns uint envfree\n    twoReturns(uint256) returns (uint256,uint256) envfree\n    threeReturns(uint256,uint256) returns (uint256,uint256,uint256)\n}",
+        "content": "methods {\n    function get5() external returns uint envfree;\n    function init_state() external envfree;\n    function setX(uint256) external envfree;\n    function getX() external returns uint envfree;\n    function getXCanRevert(uint256) external returns uint envfree;\n    function twoReturns(uint256) external returns (uint256,uint256) envfree;\n    function threeReturns(uint256,uint256) external returns (uint256,uint256,uint256);\n}",
         "type": "methods"
     },
     {
-        "content": "/**\n * @title takeTwoEnvs function\n * @param e1 - first environment\n * @param e2 - second environment\n **/\nfunction takeTwoEnvs(env e1, env e2) {\n    require e1.msg.value == 0;\n    require e1.msg.sender == e2.msg.sender;\n}",
+        "content": "/**\n * @title takeTwoEnvs function\n * @param e1 first environment\n * @param e2 second environment\n **/\nfunction takeTwoEnvs(env e1, env e2) {\n    require e1.msg.value == 0;\n    require e1.msg.sender == e2.msg.sender;\n}",
         "type": "function",
         "id": "takeTwoEnvs",
         "title": "takeTwoEnvs function",
@@ -16,12 +16,12 @@
             {
                 "type": "env",
                 "name": "e1",
-                "comment": "e1 - first environment"
+                "comment": "first environment"
             },
             {
                 "type": "env",
                 "name": "e2",
-                "comment": "e2 - second environment"
+                "comment": "second environment"
             }
         ]
     },
@@ -79,7 +79,7 @@
             {
                 "type": "method",
                 "name": "f",
-                "comment": "f  the method being checked."
+                "comment": "the method being checked."
             }
         ],
         "notice": "asserting any method"
@@ -129,12 +129,12 @@
             {
                 "type": "uint256",
                 "name": "n",
-                "comment": "n is the first argument"
+                "comment": "is the first argument"
             },
             {
                 "type": "uint256",
                 "name": "m",
-                "comment": "m is the second argument"
+                "comment": "is the second argument"
             }
         ],
         "notice": "checking the summation"

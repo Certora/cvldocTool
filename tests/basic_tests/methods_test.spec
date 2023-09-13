@@ -8,7 +8,7 @@
  * @dev do not use this function on floating points.
  */
 methods {
-    get10PowerDecimals(uint8) returns(uint256) envfree
+    function get10PowerDecimals(uint8) external returns(uint256) envfree;
 }
 
 
@@ -18,15 +18,15 @@ methods {
  * @dev includes some extended  interfaces that is not implemented yet.
  */
 methods {
-	balanceOf(address) returns uint256
-	transfer(address,uint256) returns bool
-	transferFrom(address, address, uint256) returns bool
-	approve(address, uint256) returns bool
-	allowance(address, address) returns uint256
-	totalSupply() returns uint256
+	function balanceOf(address) external returns uint256;
+	function transfer(address,uint256) external returns bool;
+	function transferFrom(address, address, uint256) external returns bool;
+	function approve(address, uint256) external returns bool;
+	function allowance(address, address) external returns uint256;
+	function totalSupply() external returns uint256;
 	// Extended API - not implemented
-	mint(address,uint256) returns bool
-	burn(address,uint256)
-	owner() returns address
-	paused() returns bool
+	function mint(address,uint256) external returns bool;
+	function burn(address,uint256) external;
+	function owner() external returns address;
+	function paused() external returns bool;
 }

@@ -8,9 +8,9 @@
   * @notice  getting two addresses and a method.
   * checking if the sender is autorise to run the method.
   * @dev Note: this is a parametric rule.
-  * @param d - the address of the sender
-  * @param x - the address of the function invoker
-  * @param f - the function to be invoked.
+  * @param d the address of the sender
+  * @param x the address of the function invoker
+  * @param f the function to be invoked.
   **/
 rule simple(address d, address x, method f) {
 
@@ -18,10 +18,10 @@ rule simple(address d, address x, method f) {
 	calldataarg arg;
 	if (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {
 	       require (eF.msg.sender == x);
-           sinvoke authorizeVoteSigner(eF,d);
+           authorizeVoteSigner(eF,d);
 	}
 	else {
-				sinvoke f(eF,arg);
+				f(eF,arg);
 	}
 	assert false;
 
@@ -32,22 +32,22 @@ rule simple(address d, address x, method f) {
   * @dev this rule is testing the sinvoke function.
   * @param d the address of the sender.
   * @param x the address of the receiver
-  * @param ff - this doesn't exist.
+  * @param ff this doesn't exist.
   **/
 rule simple2(address d, address x, method f) {
 	calldataarg arg;
 	if (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {
 	       env eF;
 		   require (eF.msg.sender == x);
-           sinvoke authorizeVoteSigner(eF,d);
+           authorizeVoteSigner(eF,d);
 	}
 	else if(!f.isFallback && f.selector == createAccount().selector) {
 		env eF;
-		sinvoke createAccount(eF);
+		createAccount(eF);
 	}
 	else {
 			env eF;
-			sinvoke f(eF,arg);
+			f(eF,arg);
 	}
 	assert false;
 }
@@ -58,7 +58,7 @@ rule simple2(address d, address x, method f) {
   * @dev this rule is testing the sinvoke function.
   * @param d the first address.
   * @param x the second address.
-  * @param f - the method that is being tested.
+  * @param f the method that is being tested.
   **/
 rule simple3(address d, address x, method f) {
 	callF(d,x,f);

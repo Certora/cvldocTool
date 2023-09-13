@@ -16,16 +16,16 @@ function callF(address d, address x, method f) {
 	if (!f.isFallback && f.selector ==  authorizeVoteSigner(address).selector) {
 	    env eF;
 		require (eF.msg.sender == x);
-        sinvoke authorizeVoteSigner(eF,d);
+        authorizeVoteSigner(eF,d);
 	}
 	else if(!f.isFallback && f.selector == createAccount().selector) {
 		env eF;
-		sinvoke createAccount(eF);
+		createAccount(eF);
 	}
 	else {
 			calldataarg arg;
 			env eF;
-			sinvoke f(eF,arg);
+			f(eF,arg);
 	}
 }
 
@@ -36,7 +36,7 @@ function callF(address d, address x, method f) {
  * @dev  the function is assuming the declaration  of 'getFullVoterDetails'
  * function.
  * @param e the used environment
- * @param voter - the prospect voter address
+ * @param voter the prospect voter address
  * @return the voter age.
  */
 function getVoterAge(env e, address voter) returns uint8 {
@@ -50,7 +50,7 @@ function getVoterAge(env e, address voter) returns uint8 {
  * @dev  the function is assuming the declaration  of 'getFullVoterDetails'
  * function.
  * @param e the used environment
- * @param voter - the prospect voter address
+ * @param voter the prospect voter address
  * @return indication if the voter is registered.
  */
  function getRegistered(env e, address voter) returns bool {

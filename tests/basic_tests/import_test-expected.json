@@ -4,13 +4,15 @@
         "text": "# import_test.spec - define a spec file for the import statement"
     },
     {
-        "type": "unknown",
+        "content": "/**\n * @title import file with math helpers functions.\n * @notice this is part of the Vax project..\n * @dev no backward compatibility  to version 1.0\n */\nimport \"./../_common/Helpers.spec\";",
+        "type": "import",
         "title": "import file with math helpers functions.",
         "notice": "this is part of the Vax project..",
         "dev": "no backward compatibility  to version 1.0"
     },
     {
-        "type": "unknown",
+        "content": "/**\n  * @title  base.spec\n  * @notice Imports all the elements defined in \"base.spec\", excluding rules and invariants\n  */\nimport \"base.spec\";",
+        "type": "import",
         "title": " base.spec",
         "notice": "Imports all the elements defined in \"base.spec\", excluding rules and invariants"
     }

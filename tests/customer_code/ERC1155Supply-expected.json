@@ -4,11 +4,11 @@
         "text": "## Verification of ERC1155Supply\n\n`ERC1155Supply` extends the `ERC1155` functionality. The contract creates a publicly callable `totalSupply` wrapper for the private `_totalSupply` method, a public `exists` method to check for a positive balance of a given token, and updates `_beforeTokenTransfer` to appropriately change the mapping `_totalSupply` in the context of minting and burning tokens.\n\n### Assumptions and Simplifications\n- The `exists` method was wrapped in the `exists_wrapper` method because `exists` is a keyword in CVL.\n- The public functions `burn`, `burnBatch`, `mint`, and `mintBatch` were implemented in the harnesssing contract make their respective internal functions callable by the CVL. This was used to test the increase and decrease of `totalSupply` when tokens are minted and burned.\n- We created the `onlyOwner` modifier to be used in the above functions so that they are not called in unrelated rules.\n\n### Properties"
     },
     {
-        "content": "methods {\n    totalSupply(uint256) returns uint256 envfree\n    balanceOf(address, uint256) returns uint256 envfree\n    exists_wrapper(uint256) returns bool envfree\n    owner() returns address envfree\n}",
+        "content": "methods {\n    function totalSupply(uint256) external returns uint256 envfree;\n    function balanceOf(address, uint256) external returns uint256 envfree;\n    function exists_wrapper(uint256) external returns bool envfree;\n    function owner() external returns address envfree;\n}",
         "type": "methods"
     },
     {
-        "content": "/// Given two different token ids, if totalSupply for one changes, then\n/// totalSupply for other must not.\nrule token_totalSupply_independence(method f)\nfiltered {\n    f -> f.selector != safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector\n}\n{\n    uint256 token1; uint256 token2;\n    require token1 != token2;\n\n    uint256 token1_before = totalSupply(token1);\n    uint256 token2_before = totalSupply(token2);\n\n    env e; calldataarg args;\n    require e.msg.sender != owner(); // owner can call mintBatch and burnBatch in our harness\n    f(e, args);\n\n    uint256 token1_after = totalSupply(token1);\n    uint256 token2_after = totalSupply(token2);\n\n    assert token1_after != token1_before => token2_after == token2_before,\n        \"methods must not change the total supply of more than one token\";\n}",
+        "content": "/// Given two different token ids, if totalSupply for one changes, then\n/// totalSupply for other must not.\nrule token_totalSupply_independence(method f)\nfiltered {\n    f -> f.selector != safeBatchTransferFrom(address,address,uint256[1],uint256[1],bytes).selector\n}\n{\n    uint256 token1; uint256 token2;\n    require token1 != token2;\n\n    uint256 token1_before = totalSupply(token1);\n    uint256 token2_before = totalSupply(token2);\n\n    env e; calldataarg args;\n    require e.msg.sender != owner(); // owner can call mintBatch and burnBatch in our harness\n    f(e, args);\n\n    uint256 token1_after = totalSupply(token1);\n    uint256 token2_after = totalSupply(token2);\n\n    assert token1_after != token1_before => token2_after == token2_before,\n        \"methods must not change the total supply of more than one token\";\n}",
         "type": "rule",
         "id": "token_totalSupply_independence",
         "title": "Token total supply independence",
@@ -27,6 +27,10 @@
         "title": "Sum of balances"
     },
     {
+        "content": "hook Sstore _balances[KEY uint256 token][KEY address user] uint256 newValue (uint256 oldValue) STORAGE {\n    sumOfBalances[token] = sumOfBalances[token] + newValue - oldValue;\n}",
+        "type": "hook"
+    },
+    {
         "content": "/// The sum of the balances over all users must equal the total supply for a \n/// given token.\ninvariant total_supply_is_sum_of_balances(uint256 token)\n    sumOfBalances[token] == totalSupply(token)\n    {\n        preserved {\n            requireInvariant balanceOfZeroAddressIsZero(token);\n        }\n    }",
         "type": "invariant",
         "id": "total_supply_is_sum_of_balances",
@@ -40,7 +44,7 @@
         "notice": "The sum of the balances over all users must equal the total supply for a\ngiven token."
     },
     {
-        "content": "/// The balance of a token for the zero address must be zero.\ninvariant balanceOfZeroAddressIsZero(uint256 token)\n    balanceOf(0, token) == 0",
+        "content": "/// The balance of a token for the zero address must be zero.\ninvariant balanceOfZeroAddressIsZero(uint256 token)\n    balanceOf(0, token) == 0;",
         "type": "invariant",
         "id": "balanceOfZeroAddressIsZero",
         "title": "Balance of zero address is zero",

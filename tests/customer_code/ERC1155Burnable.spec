@@ -12,8 +12,8 @@
 //// ### Properties
 
 methods {
-    balanceOf(address, uint256) returns uint256 envfree
-    isApprovedForAll(address,address) returns bool envfree
+    function balanceOf(address, uint256) external returns uint256 envfree;
+    function isApprovedForAll(address,address) external returns bool envfree;
 }
 
 /// If a method call reduces account balances, the caller must be either the 

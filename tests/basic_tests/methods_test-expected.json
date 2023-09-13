@@ -4,14 +4,14 @@
         "text": "# methods_test.spec - Natspec testing file for the methods statement.\n# contains a few declarations of statements."
     },
     {
-        "content": "/**\n * @title mathematical helpe functions.\n * @notice get the  power of 10 n decimal format\n * @dev do not use this function on floating points.\n */\nmethods {\n    get10PowerDecimals(uint8) returns(uint256) envfree\n}",
+        "content": "/**\n * @title mathematical helpe functions.\n * @notice get the  power of 10 n decimal format\n * @dev do not use this function on floating points.\n */\nmethods {\n    function get10PowerDecimals(uint8) external returns(uint256) envfree;\n}",
         "type": "methods",
         "title": "mathematical helpe functions.",
         "notice": "get the  power of 10 n decimal format",
         "dev": "do not use this function on floating points."
     },
     {
-        "content": "/**\n * @title Specification for core ERC20 tokens.\n * @notice contains all ER20 Interface definitions.\n * @dev includes some extended  interfaces that is not implemented yet.\n */\nmethods {\n\tbalanceOf(address) returns uint256\n\ttransfer(address,uint256) returns bool\n\ttransferFrom(address, address, uint256) returns bool\n\tapprove(address, uint256) returns bool\n\tallowance(address, address) returns uint256\n\ttotalSupply() returns uint256\n\t// Extended API - not implemented\n\tmint(address,uint256) returns bool\n\tburn(address,uint256)\n\towner() returns address\n\tpaused() returns bool\n}",
+        "content": "/**\n * @title Specification for core ERC20 tokens.\n * @notice contains all ER20 Interface definitions.\n * @dev includes some extended  interfaces that is not implemented yet.\n */\nmethods {\n\tfunction balanceOf(address) external returns uint256;\n\tfunction transfer(address,uint256) external returns bool;\n\tfunction transferFrom(address, address, uint256) external returns bool;\n\tfunction approve(address, uint256) external returns bool;\n\tfunction allowance(address, address) external returns uint256;\n\tfunction totalSupply() external returns uint256;\n\t// Extended API - not implemented\n\tfunction mint(address,uint256) external returns bool;\n\tfunction burn(address,uint256) external;\n\tfunction owner() external returns address;\n\tfunction paused() external returns bool;\n}",
         "type": "methods",
         "title": "Specification for core ERC20 tokens.",
         "notice": "contains all ER20 Interface definitions.",

@@ -19,7 +19,7 @@
         "notice": "The total supply of the system si zero if and only if the balanceof the system is zero\nthe variant has no parameters"
     },
     {
-        "content": "/**\n * @title proxyNotZero\n * @notice make sure that the proxy is not zero.\n * @dev make use of 'getOrCreateProxy'\n * @param a = proxy address\n*/\ninvariant proxyNotZero(address a) getOrCreateProxy(a) != 0",
+        "content": "/**\n * @title proxyNotZero\n * @notice make sure that the proxy is not zero.\n * @dev make use of 'getOrCreateProxy'\n * @param a proxy address\n*/\ninvariant proxyNotZero(address a) getOrCreateProxy(a) != 0;",
         "type": "invariant",
         "id": "proxyNotZero",
         "title": "proxyNotZero",
@@ -27,14 +27,14 @@
             {
                 "type": "address",
                 "name": "a",
-                "comment": "a = proxy address"
+                "comment": "proxy address"
             }
         ],
         "notice": "make sure that the proxy is not zero.",
         "dev": "make use of 'getOrCreateProxy'"
     },
     {
-        "content": "/**\n * @title check - check all addresses.\n * @dev make use of 'getVoteSigner' and 'isAccount'\n * @param x = source address\n * @param d = destination address\n*/\ninvariant check(address x, address d)\n\t\t!sinvoke isAccount(x) && sinvoke getVoteSigner(x)==d  => d==0",
+        "content": "/**\n * @title check - check all addresses.\n * @dev make use of 'getVoteSigner' and 'isAccount'\n * @param x source address\n * @param d destination address\n*/\ninvariant check(address x, address d)\n\t\t!isAccount(x) && getVoteSigner(x)==d  => d==0;",
         "type": "invariant",
         "id": "check",
         "title": "check - check all addresses.",
@@ -42,12 +42,12 @@
             {
                 "type": "address",
                 "name": "x",
-                "comment": "x = source address"
+                "comment": "source address"
             },
             {
                 "type": "address",
                 "name": "d",
-                "comment": "d = destination address"
+                "comment": "destination address"
             }
         ],
         "dev": "make use of 'getVoteSigner' and 'isAccount'"

@@ -11,8 +11,8 @@
 //// ### Properties
 
 methods {
-    balanceOf(address, uint256) returns uint256 envfree
-    paused() returns bool envfree
+    function balanceOf(address, uint256) external returns uint256 envfree;
+    function paused() external returns bool envfree;
 }
 
 /// When a contract is in a paused state, the token balance for a given user and
@@ -36,7 +36,7 @@ rule balancesUnchangedWhenPaused() {
 rule transferMethodsRevertWhenPaused (method f)
 filtered {
     f -> f.selector == safeTransferFrom(address,address,uint256,uint256,bytes).selector
-      || f.selector == safeBatchTransferFrom(address,address,uint256[],uint256[],bytes).selector
+      || f.selector == safeBatchTransferFrom(address,address,uint256[1],uint256[1],bytes).selector
 }
 {
     require paused();

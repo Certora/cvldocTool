@@ -1,6 +1,6 @@
-import "GovernorCountingSimple.spec"
+import "GovernorCountingSimple.spec";
 
-using ERC721VotesHarness as erc721votes
+using ERC721VotesHarness as erc721votes;
 
 /***
 ## Verification of GovernorPreventLateQuorum 
@@ -41,28 +41,28 @@ None
 */
     
 methods {
-    quorumDenominator() returns uint256 envfree
-    votingPeriod() returns uint256 envfree
-    lateQuorumVoteExtension() returns uint64 envfree
-    propose(address[], uint256[], bytes[], string)
+    function quorumDenominator() external returns uint256 envfree;
+    function votingPeriod() external returns uint256 envfree;
+    function lateQuorumVoteExtension() external returns uint64 envfree;
+    function propose(address[], uint256[], bytes[], string) external;
 
     // harness
-    getExtendedDeadlineIsUnset(uint256) returns bool envfree
-    getExtendedDeadlineIsStarted(uint256) returns bool envfree
-    getExtendedDeadline(uint256) returns uint64 envfree
-    getAgainstVotes(uint256) returns uint256 envfree
-    getAbstainVotes(uint256) returns uint256 envfree
-    getForVotes(uint256) returns uint256 envfree
+    function getExtendedDeadlineIsUnset(uint256) external returns bool envfree;
+    function getExtendedDeadlineIsStarted(uint256) external returns bool envfree;
+    function getExtendedDeadline(uint256) external returns uint64 envfree;
+    function getAgainstVotes(uint256) external returns uint256 envfree;
+    function getAbstainVotes(uint256) external returns uint256 envfree;
+    function getForVotes(uint256) external returns uint256 envfree;
     
     // more robust check than f.selector == _castVote(...).selector
-    latestCastVoteCall() returns uint256 envfree 
+    function latestCastVoteCall() external returns uint256 envfree ;
 
     // timelock dispatch
-    getMinDelay() returns uint256 => DISPATCHER(true)
+    function getMinDelay() external returns uint256 => DISPATCHER(true);
     
-    hashOperationBatch(address[], uint256[], bytes[], bytes32, bytes32) => DISPATCHER(true)
-    executeBatch(address[], uint256[], bytes[], bytes32, bytes32) => CONSTANT
-    scheduleBatch(address[], uint256[], bytes[], bytes32, bytes32, uint256) => CONSTANT
+    function hashOperationBatch(address[], uint256[], bytes[], bytes32, bytes32) external => DISPATCHER(true);
+    function executeBatch(address[], uint256[], bytes[], bytes32, bytes32) external  => CONSTANT;
+    function scheduleBatch(address[], uint256[], bytes[], bytes32, bytes32, uint256) external  => CONSTANT;
 }
 
 
@@ -130,7 +130,7 @@ definition proposalNotCreated(env e, uint256 pId) returns bool =
  * @dev ADVANCED SANITY NOT RAN
  */ 
 invariant quorumReachedEffect(env e, uint256 pId)
-    quorumReached(e, pId) => proposalCreated(pId) // bug: 0 supply 0 votes => quorumReached
+    quorumReached(e, pId) => proposalCreated(pId); // bug: 0 supply 0 votes => quorumReached
     // filtered { f -> f.selector != updateQuorumNumerator(uint256).selector } // * fails for this function
 
 /**
@@ -139,7 +139,7 @@ invariant quorumReachedEffect(env e, uint256 pId)
  * @dev ADVANCED SANITY NOT RAN
  */
 invariant proposalNotCreatedEffects(env e, uint256 pId)
-    !proposalCreated(pId) => proposalNotCreated(e, pId)
+    !proposalCreated(pId) => proposalNotCreated(e, pId);
     // filtered { f -> f.selector != updateQuorumNumerator(uint256).selector } // * fails for this function
 
 /**

@@ -4,11 +4,13 @@
         "text": "# using_test.spec - a NatSpec test file for using statement"
     },
     {
-        "type": "unknown",
+        "content": "/**\n  * @dev bad contract abbreviation\n  */\nusing BadContract as bc;",
+        "type": "using",
         "dev": "bad contract abbreviation"
     },
     {
-        "type": "unknown",
+        "content": "/**\n  * @title DummyERC20A\n  * @dev Contract A !\n  */\nusing DummyERC20A as tokenA;",
+        "type": "using",
         "title": "DummyERC20A",
         "dev": "Contract A !"
     }
