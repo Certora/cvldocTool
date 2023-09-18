@@ -21,7 +21,7 @@ commands:
 jobs:
   build:
     docker:
-      - image: &img cimg/python:3.10
+      - image: &img cimg/python:3.8
     working_directory: ~/repo
     steps:
       - fetch
@@ -51,7 +51,7 @@ jobs:
           name: Upload to test PyPi
           command: |
             pip install --user twine
-            python -m twine upload --skip-existing --verbose --repository testpypi -u ${TESTPYPI_USER} -p ${TESTPYPI_PASSWORD} dist/*
+            python -m twine upload --verbose --repository testpypi -u ${TESTPYPI_USER} -p ${TESTPYPI_PASSWORD} dist/*
 
   upload_prod:
     docker:

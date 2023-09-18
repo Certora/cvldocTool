@@ -68,25 +68,24 @@ def handle_tag(doc_dict: Dict[str, Any], tag: DocumentationTag):
     @dev tags will be joined to a single tag.
     """
 
-    match tag.kind:
-        case TagKind.Dev:
-            dev_description = tag.description.strip()
-            if "dev" in doc_dict:
-                doc_dict["dev"] += "\n"
-                doc_dict["dev"] += dev_description
-            else:
-                doc_dict["dev"] = dev_description
-        case TagKind.Title | TagKind.Notice | TagKind.Formula:
-            doc_dict[str(tag.kind)] = tag.description
-        case TagKind.Return:
-            doc_dict.setdefault("return", {}).update({"comment": tag.description})
-        case TagKind.Param:
-            params = doc_dict.setdefault("params", {})
+    if tag.kind in [TagKind.Title, TagKind.Notice, TagKind.Formula]:
+        doc_dict[str(tag.kind)] = tag.description
+    elif tag.kind == TagKind.Dev:
+        dev_description = tag.description.strip()
+        if "dev" in doc_dict:
+            doc_dict["dev"] += "\n"
+            doc_dict["dev"] += dev_description
+        else:
+            doc_dict["dev"] = dev_description
+    elif tag.kind == TagKind.Return:
+        doc_dict.setdefault("return", {}).update({"comment": tag.description})
+    elif tag.kind == TagKind.Param:
+        params = doc_dict.setdefault("params", {})
 
-            if name_and_description := tag.param_name_and_description():
-                param_name, param_description = name_and_description
-                if param := find_param_by_name(params, param_name):
-                    param["comment"] = param_description
+        if name_and_description := tag.param_name_and_description():
+            param_name, param_description = name_and_description
+            if param := find_param_by_name(params, param_name):
+                param["comment"] = param_description
 
 
 def find_param_by_name(
