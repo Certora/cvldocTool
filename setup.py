@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 NAME = "CVLDoc"
-VERSION = "2.0.0b3"
+VERSION = "2.0.0b5"
 
 if __name__ == "__main__":
     setup(
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         python_requires=">=3.8",
         entry_points={
             "console_scripts": [
-                "cvldoc=cvldoc_to_json:entry_point",
+                "cvldoc=CVLDoc.cvldoc_to_json:main",
             ],
         },
     )
