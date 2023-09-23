@@ -8,7 +8,7 @@ commands:
   test_package:
     steps:
       - run: pip install pytest deepdiff inflection loguru
-      - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==2.0.0b1
+      - run: pip install --pre --index-url https://test.pypi.org/simple/ cvldoc_parser
       - run:
           name: "run tests"
           command: python -m pytest
@@ -77,14 +77,20 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - upgrade_pip
-      - run: pip --version
-      - run: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple cvldoc
-      - run: pip freeze
       - run:
-          name: Check cvldoc --help
+          name: Delay before testing new version
+          command: sleep 90
+      - run:
+          name: Install newly-uploaded version from TestPyPI
+          command: |
+            pip --version
+            pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple CVLDoc
+            pip freeze
+      - run:
+          name: Check `cvldoc --help`
           command: cvldoc --help
       - run:
-          name: run cvldoc on a test file
+          name: Run CVLDoc on a test file
           command: sh tests/run_single_test.sh 
 
   python_lint:

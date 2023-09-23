@@ -8,7 +8,6 @@ from argparse import ArgumentParser
 from typing import Dict, List, Any, Optional
 from loguru import logger
 from pathlib import Path
-from setup import VERSION
 
 
 def write_to_file(path: Path, path_dicts: List[Dict[str, Any]]):
@@ -97,10 +96,41 @@ def find_param_by_name(
     return None
 
 
+def package_version(package_name: str) -> Optional[str]:
+    """
+    there might be better ways to do this,
+    but that's as far as I'm willing to care about python idiosyncrasies
+    """
+
+    from distutils.core import run_setup
+    from importlib import metadata
+
+    # attempts to get version by querying `setup.py`, if it exists in a parent dir.
+    # no side effects here - actual setup is stopped before any installation steps occur
+    try:
+        distribution = run_setup("./setup.py", stop_after="init")
+        return distribution.get_version()
+    except (FileNotFoundError, RuntimeError):
+        pass
+
+    # if this package is installed in current env, return the installed version
+    # (even if this isn't where the script has been ran from!)
+    try:
+        return metadata.version(package_name)
+    except metadata.PackageNotFoundError:
+        pass
+
+    return None
+
+
 def argument_parser() -> ArgumentParser:
-    # separate the argument parser definition
+    package_name = "CVLDoc"
+
+    version = package_version(package_name)
+    version_str = f"{package_name} {version}" if version else package_name
+
     parser = ArgumentParser(
-        prog="cvldocTool", description="export CVLDoc comments to JSON"
+        prog=package_name, description="export CVLDoc comments to JSON"
     )
     parser.add_argument(
         dest="input_files", help="path to input spec file(s) ", type=Path, nargs="+"
@@ -114,7 +144,7 @@ def argument_parser() -> ArgumentParser:
     parser.add_argument(
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
-    parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
+    parser.add_argument("--version", action="version", version=version_str)
 
     # the following arguments are currently unimplemented
     # parser.add_argument(

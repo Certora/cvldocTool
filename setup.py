@@ -3,13 +3,11 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-NAME = "CVLDoc"
-VERSION = "2.0.0b5"
 
 if __name__ == "__main__":
     setup(
-        name=NAME,
-        version=VERSION,
+        name="CVLDoc",
+        version="2.0.0b7",
         author="Certora ltd",
         author_email="support@certora.com",
         description="Utility for reading CERTORA spec files, parse and export their CVLDoc comments to JSON files.",
