@@ -24,8 +24,7 @@ def write_to_file(path: Path, path_dicts: List[Dict[str, Any]]):
 
 
 def handle_freeform_comment(cvl_element: CvlElement) -> Dict[str, str]:
-    comment_text = cvl_element.ast.data["text"]
-    if comment_text:
+    if comment_text := cvl_element.ast.data["text"]:
         return {"type": "text", "text": comment_text}
     else:
         return {}
@@ -133,7 +132,7 @@ def argument_parser() -> ArgumentParser:
         prog=package_name, description="export CVLDoc comments to JSON"
     )
     parser.add_argument(
-        dest="input_files", help="path to input spec file(s) ", type=Path, nargs="+"
+        dest="input_files", help="path to input spec file(s)", type=Path, nargs="+"
     )
     parser.add_argument(
         "-u",
@@ -145,14 +144,6 @@ def argument_parser() -> ArgumentParser:
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
     parser.add_argument("--version", action="version", version=version_str)
-
-    # the following arguments are currently unimplemented
-    # parser.add_argument(
-    #     "-dev", "--development", help="produce developer report", action="store_true"
-    # )
-    # parser.add_argument(
-    #     "-user", "--user", help="produce end user report", action="store_true"
-    # )
 
     return parser
 
