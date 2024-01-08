@@ -4,13 +4,21 @@ from deepdiff import DeepDiff
 from pprint import pprint
 from pathlib import Path
 import os
+import argparse
 
 
 # parser = natspec_to_json.get_parser()
 # args = parser.parse_args(test_args + filenames)
 # natspec_to_json.natspec_to_json(args)
 
+
+
 # run a single test file
+def parse_test_dir_path() -> Path:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', default='.', help='The path from which to look for tests.')
+    return Path(parser.parse_args().path)
+
 
 def omit_cr_from_file(filename):
     with open(filename, 'r+') as f:
@@ -22,7 +30,7 @@ def omit_cr_from_file(filename):
         f.close()
 
 
-def run_test_file(filename):
+def run_test_file(filename: str):
     test_args = ['-v', filename]
 
     parser = natspec_to_json.get_parser()
@@ -139,20 +147,10 @@ def test_initializable():
 
 
 if __name__ == '__main__':
-    # perform basic tests
-    test_function()
-    test_invariant()
-    test_rules()
-#    test_import()
-#    test_using()
-    test_definition()
-    test_methods()
-    test_full_contract()
+    path = parse_test_dir_path()
+    specs = path.rglob('*.spec')
 
-    # advanced tests
-    test_burnable()
-    test_new()
-    test_pausable()
-    test_supply()
-    test_governor()
-    test_initializable()
+    for spec in specs:
+        diff = run_test_file(spec)
+        if diff is not None:
+            pprint(diff, indent=4)
