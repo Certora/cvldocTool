@@ -114,9 +114,6 @@ jobs:
       - run: python -m flake8 --config tests/.flake8 tests/natspec_tests.py
 
 workflows:
-  test:
-
-
   build-and-publish:
     jobs:
       - build
