@@ -10,10 +10,9 @@ commands:
       - run: pip install pytest deepdiff inflection
       - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==1.0.1
       - run:
-          name: "run tests"
+          name: Run tests
           command: |
-            cd tests
-            python natspec_tests.py
+            python natspec_tests.py --path tests
 
   upgrade_pip:
     steps:

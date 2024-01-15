@@ -1,10 +1,12 @@
-import json
 import src.CVLDoc.natspec_to_json as natspec_to_json
-from deepdiff import DeepDiff
+
+import json
 from pprint import pprint
 from pathlib import Path
 import os
 import argparse
+
+from deepdiff import DeepDiff
 
 
 # parser = natspec_to_json.get_parser()
@@ -12,12 +14,10 @@ import argparse
 # natspec_to_json.natspec_to_json(args)
 
 
-
-# run a single test file
 def parse_test_dir_path() -> Path:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', default='.', help='The path from which to look for tests.')
-    return Path(parser.parse_args().path)
+    parser.add_argument('--path', type=Path, default='.', help='The path from which to look for tests.')
+    return parser.parse_args().path
 
 
 def omit_cr_from_file(filename):
@@ -36,7 +36,7 @@ def run_test_file(filename: str):
     parser = natspec_to_json.get_parser()
     args = parser.parse_args(test_args)
     natspec_to_json.natspec_to_json(args)
-    input_filename, file_extension = os.path.splitext(filename)
+    input_filename, _ = os.path.splitext(filename)
     output_filename = os.path.join(input_filename + '-natspec' + '.json')
     expected_filename = os.path.join(input_filename + '-expected' + '.json')
     omit_cr_from_file(output_filename)
