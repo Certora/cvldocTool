@@ -1,4 +1,4 @@
-import CVLDoc.natspec_to_json as natspec_to_json
+import src.CVLDoc.natspec_to_json as natspec_to_json
 
 import json
 from pprint import pprint

@@ -12,8 +12,7 @@ commands:
       - run:
           name: Run tests
           command: |
-            cd tests/
-            python natspec_tests.py
+            python tests/natspec_tests.py --path tests/
 
   upgrade_pip:
     steps:
