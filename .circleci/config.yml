@@ -7,42 +7,36 @@ commands:
 
   test_package:
     steps:
-      - run: pip install pytest deepdiff inflection
-      - run: pip install -i https://test.pypi.org/simple/ cvldoc_parser==1.0.1
+      - run: pip install pytest deepdiff inflection loguru
+      - run: pip install --pre --index-url https://test.pypi.org/simple/ cvldoc_parser
       - run:
           name: "run tests"
-          command: |
-            cd tests
-            pytest natspec_tests.py
+          command: python -m pytest
 
   upgrade_pip:
     steps:
       - run: python -m pip install --user --upgrade pip
       - run: pip install -U pip setuptools
 
-
 jobs:
   build:
     docker:
-      - image: &img cimg/python:3.7.13
+      - image: &img cimg/python:3.8
     working_directory: ~/repo
     steps:
       - fetch
       - upgrade_pip
       - run:
           name: Install dependencies
-          command: |
-            pip install --user twine wheel
+          command: pip install --user twine wheel
       - run:
           name: Build
-          command: |
-            python setup.py sdist bdist_wheel
+          command: python setup.py sdist bdist_wheel
       - test_package
       - persist_to_workspace:
           root: ~/repo
           paths:
             - .
-
 
   upload_staging:
     docker:
@@ -52,14 +46,12 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/repo
-
       - upgrade_pip
-
       - run:
           name: Upload to test PyPi
           command: |
             pip install --user twine
-            python -m twine upload --skip-existing --verbose --repository testpypi -u ${TESTPYPI_USER} -p ${TESTPYPI_PASSWORD} dist/*
+            python -m twine upload --verbose --repository testpypi -u ${TESTPYPI_USER} -p ${TESTPYPI_PASSWORD} dist/*
 
   upload_prod:
     docker:
@@ -69,9 +61,7 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/repo
-
       - upgrade_pip
-
       - run:
           name: Upload to prod PyPi
           command: |
@@ -86,19 +76,22 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/repo
-
       - upgrade_pip
-      - run: pip --version
-      - run: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple cvldoc
-      - run: pip freeze
       - run:
-          name: Check cvldoc --help
-          command: |
-            cvldoc --help
+          name: Delay before testing new version
+          command: sleep 90
       - run:
-          name: run cvldoc on a test file
+          name: Install newly-uploaded version from TestPyPI
           command: |
-            sh tests/run_single_test.sh 
+            pip --version
+            pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple CVLDoc
+            pip freeze
+      - run:
+          name: Check `cvldoc --help`
+          command: cvldoc --help
+      - run:
+          name: Run CVLDoc on a test file
+          command: sh tests/run_single_test.sh 
 
   python_lint:
     docker:
@@ -109,9 +102,8 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - upgrade_pip
-      - run: pip install --user flake8
-      - run: python -m flake8 --config tests/.flake8  src/CVLDoc/natspec_to_json.py
-      - run: python -m flake8 --config tests/.flake8 tests/natspec_tests.py
+      - run: pip install --user black
+      - run: python -m black .
 
 workflows:
   build-and-publish:
