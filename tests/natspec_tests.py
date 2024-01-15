@@ -30,8 +30,8 @@ def omit_cr_from_file(filename):
         f.close()
 
 
-def run_test_file(filename: str):
-    test_args = ['-v', filename]
+def run_test_file(filename: Path):
+    test_args = ['-v', str(filename)]
 
     parser = natspec_to_json.get_parser()
     args = parser.parse_args(test_args)
