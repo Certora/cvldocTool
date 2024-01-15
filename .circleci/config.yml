@@ -134,3 +134,7 @@ workflows:
             branches:
               only:
                 - /production.*/
+    filters:
+      branches:
+        only:
+          - master
