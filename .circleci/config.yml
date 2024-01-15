@@ -113,8 +113,23 @@ jobs:
       - run: python -m flake8 --config tests/.flake8  src/CVLDoc/natspec_to_json.py
       - run: python -m flake8 --config tests/.flake8 tests/natspec_tests.py
 
+
+parameters:
+  publish:
+    default: false
+    type: boolean
+
+
 workflows:
+  test-build:
+    jobs:
+      - build
+      - python_lint:
+          requires:
+            - build
+
   build-and-publish:
+    when: << pipeline.parameters.publish >>
     jobs:
       - build
       - python_lint:
@@ -134,7 +149,3 @@ workflows:
             branches:
               only:
                 - /production.*/
-    filters:
-      branches:
-        only:
-          - master
