@@ -105,8 +105,23 @@ jobs:
       - run: pip install --user black
       - run: python -m black .
 
+
+parameters:
+  publish:
+    default: false
+    type: boolean
+
+
 workflows:
+  test-build:
+    jobs:
+      - build
+      - python_lint:
+          requires:
+            - build
+
   build-and-publish:
+    when: << pipeline.parameters.publish >>
     jobs:
       - build
       - python_lint:
