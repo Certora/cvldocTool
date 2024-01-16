@@ -7,7 +7,7 @@ from deepdiff import DeepDiff
 import pytest
 
 
-SPECS = list(Path(__file__).parent.rglob('*.spec'))
+SPECS = list(Path('.').parent.rglob('*.spec'))
 
 
 def __file_contents_as_json(path: Path) -> dict:

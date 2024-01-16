@@ -11,7 +11,9 @@ commands:
       - run: pip install --pre --index-url https://test.pypi.org/simple/ cvldoc_parser
       - run:
           name: Run tests
-          command: python -m pytest -v -rA
+          command: | 
+            cd tests
+            python -m pytest -v -rA
 
   upgrade_pip:
     steps:
