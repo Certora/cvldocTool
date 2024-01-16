@@ -7,6 +7,9 @@ from deepdiff import DeepDiff
 import pytest
 
 
+SPECS = Path(__file__).parent.rglob('*.spec')
+
+
 def __file_contents_as_json(path: Path) -> dict:
     with open(path, 'r+') as f:
         content = f.read()
@@ -26,8 +29,8 @@ def __get_diff(absolute_spec_path: Path) -> DeepDiff:
     return DeepDiff(expected_json, output_json, ignore_order=False)
 
 
-@pytest.mark.parametrize('spec_path', 
-                         [(s) for s in Path(__file__).parent.rglob('*.spec')])
+
+@pytest.mark.parametrize('spec_path', SPECS, ids=[str(s) for s in SPECS])
 def test_cvldoc_generation(spec_path: Path):
     absolute_path = spec_path.absolute()
 
