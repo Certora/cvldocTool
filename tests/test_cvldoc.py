@@ -30,7 +30,7 @@ def __get_diff(absolute_spec_path: Path) -> DeepDiff:
 
 
 
-@pytest.mark.parametrize('spec_path', SPECS, ids=[str(s) for s in SPECS])
+@pytest.mark.parametrize('spec_path', SPECS, ids=[str(s.relative_to(__file__)) for s in SPECS])
 def test_cvldoc_generation(spec_path: Path):
     absolute_path = spec_path.absolute()
 
