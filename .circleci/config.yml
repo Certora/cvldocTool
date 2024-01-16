@@ -11,7 +11,7 @@ commands:
       - run: pip install --pre --index-url https://test.pypi.org/simple/ cvldoc_parser
       - run:
           name: Run tests
-          command: python -m pytest -v -rA
+          command: python -m pytest -v -rA --junitxml=results.xml
 
   upgrade_pip:
     steps:
@@ -37,6 +37,8 @@ jobs:
           root: ~/repo
           paths:
             - .
+      - store_test_results:
+          path: ~/repo
 
   upload_staging:
     docker:
