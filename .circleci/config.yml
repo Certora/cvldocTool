@@ -10,8 +10,8 @@ commands:
       - run: pip install pytest deepdiff inflection loguru
       - run: pip install --pre --index-url https://test.pypi.org/simple/ cvldoc_parser
       - run:
-          name: "run tests"
-          command: python -m pytest
+          name: Run tests
+          command: pytest -v
 
   upgrade_pip:
     steps:
