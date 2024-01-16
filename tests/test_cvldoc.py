@@ -26,7 +26,7 @@ def __get_diff(absolute_spec_path: Path) -> DeepDiff:
     return DeepDiff(expected_json, output_json, ignore_order=False)
 
 
-@pytest.mark.parametrize('spec_path', Path(__file__).parent.rglob('*.spec'))
+@pytest.mark.parametrize('spec_path', list(Path(__file__).parent.rglob('*.spec')))
 def test_cvldoc_generation(spec_path: Path):
     absolute_path = spec_path.absolute()
 
