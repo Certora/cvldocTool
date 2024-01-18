@@ -10,8 +10,8 @@ commands:
       - run: pip install pytest deepdiff inflection loguru
       - run: pip install --pre --index-url https://test.pypi.org/simple/ cvldoc_parser
       - run:
-          name: "run tests"
-          command: python -m pytest
+          name: Run tests
+          command: python -m pytest -v -rA --junitxml=results.xml
 
   upgrade_pip:
     steps:
@@ -37,6 +37,8 @@ jobs:
           root: ~/repo
           paths:
             - .
+      - store_test_results:
+          path: ~/repo
 
   upload_staging:
     docker:
@@ -105,8 +107,23 @@ jobs:
       - run: pip install --user black
       - run: python -m black .
 
+
+parameters:
+  publish:
+    default: false
+    type: boolean
+
+
 workflows:
+  test-build:
+    jobs:
+      - build
+      - python_lint:
+          requires:
+            - build
+
   build-and-publish:
+    when: << pipeline.parameters.publish >>
     jobs:
       - build
       - python_lint:
