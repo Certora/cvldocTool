@@ -1,0 +1,429 @@
+[
+    {
+        "type": "text",
+        "text": "This example is a full spec for erc20.\nTo run this use Certora cli with the conf file runERC20Full.conf\nExample of a run: https://prover.certora.com/output/1512/846955955f824eeeb9fcf2ecde213387?anonymousKey=ca2bab75317377ec2ecbdb76b5dd1b6f9e024d96\nMutation test for this spec: https://mutation-testing.certora.com?id=c95fc217-3300-4323-a379-08b99421ca06&anonymousKey=932faa90-d711-4a6b-b4d6-eb5a58f8455a\nSee https://docs.certora.com for a complete guide."
+    },
+    {
+        "content": "methods {\n    function totalSupply() external returns (uint256) envfree;\n    function balanceOf(address) external returns (uint256) envfree;\n    function allowance(address,address) external returns (uint256) envfree;\n    function nonces(address) external returns (uint256) envfree;\n    function contractOwner() external returns (address) envfree;\n    function permit(address,address,uint256,uint256,uint8,bytes32,bytes32) external;\n    function approve(address,uint256) external returns bool;\n    function transfer(address,uint256) external returns bool;\n    function transferFrom(address,address,uint256) external returns bool;\n\n    // exposed for FV\n    function mint(address,uint256) external;\n    function burn(address,uint256) external;\n}",
+        "type": "methods"
+    },
+    {
+        "content": "definition canIncreaseAllowance(method f) returns bool = \n\tf.selector == sig:approve(address,uint256).selector ||\n\tf.selector == sig:permit(address,address,uint256,uint256,uint8,bytes32,bytes32).selector;\n\ndefinition canDecreaseAllowance(method f) returns bool = \n\tf.selector == sig:approve(address,uint256).selector || \n\tf.selector == sig:transferFrom(address,address,uint256).selector ||\n\tf.selector == sig:permit(address,address,uint256,uint256,uint8,bytes32,bytes32).selector;\n\ndefinition canIncreaseBalance(method f) returns bool = \n\tf.selector == sig:mint(address,uint256).selector || \n\tf.selector == sig:transfer(address,uint256).selector ||\n\tf.selector == sig:transferFrom(address,address,uint256).selector;\n\ndefinition canDecreaseBalance(method f) returns bool = \n\tf.selector == sig:burn(address,uint256).selector || \n\tf.selector == sig:transfer(address,uint256).selector ||\n\tf.selector == sig:transferFrom(address,address,uint256).selector;\n\ndefinition canIncreaseTotalSupply(method f) returns bool = \n\tf.selector == sig:mint(address,uint256).selector;\n\ndefinition canDecreaseTotalSupply(method f) returns bool = \n\tf.selector == sig:burn(address,uint256).selector;\n\n/*\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 Ghost & hooks: sum of all balances                                                                                  \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n*/\n\nghost mathint sumOfBalances {\n    init_state axiom sumOfBalances == 0;",
+        "type": "definition",
+        "id": "canIncreaseAllowance",
+        "title": "Can increase allowance",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ],
+        "return": {
+            "type": "bool"
+        }
+    },
+    {
+        "content": "ghost mathint numberOfChangesOfBalances {\n\tinit_state axiom numberOfChangesOfBalances == 0;\n}",
+        "type": "ghost",
+        "id": "numberOfChangesOfBalances",
+        "title": "Number of changes of balances"
+    },
+    {
+        "content": "hook Sload uint256 balance _balances[KEY address addr] STORAGE {\n    require sumOfBalances >= to_mathint(balance);\n}",
+        "type": "hook"
+    },
+    {
+        "content": "hook Sstore _balances[KEY address addr] uint256 newValue (uint256 oldValue) STORAGE {\n    sumOfBalances = sumOfBalances - oldValue + newValue;\n    numberOfChangesOfBalances = numberOfChangesOfBalances + 1;\n}",
+        "type": "hook"
+    },
+    {
+        "content": "invariant totalSupplyIsSumOfBalances()\n    to_mathint(totalSupply()) == sumOfBalances;",
+        "type": "invariant",
+        "id": "totalSupplyIsSumOfBalances",
+        "title": "Total supply is sum of balances"
+    },
+    {
+        "content": "rule contractOwnerNeverChange(env e){\n    address owner = contractOwner();\n    method f;\n    calldataarg args;\n    f(e, args);\n    assert owner == contractOwner();\n}",
+        "type": "rule",
+        "id": "contractOwnerNeverChange",
+        "title": "Contract owner never change",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule totalSupplyNeverOverflow(env e, method f, calldataarg args) filtered{f -> canIncreaseTotalSupply(f) }{\n\tuint256 totalSupplyBefore = totalSupply();\n\n\tf(e, args);\n\n\tuint256 totalSupplyAfter = totalSupply();\n\n\tassert totalSupplyBefore <= totalSupplyAfter;\n}",
+        "type": "rule",
+        "id": "totalSupplyNeverOverflow",
+        "title": "Total supply never overflow",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            },
+            {
+                "type": "method",
+                "name": "f"
+            },
+            {
+                "type": "calldataarg",
+                "name": "args"
+            }
+        ]
+    },
+    {
+        "content": "rule noMethodChangesMoreThanTwoBalances(method f) {\n\tenv e;\n\tmathint numberOfChangesOfBalancesBefore = numberOfChangesOfBalances;\n\tcalldataarg args;\n\tf(e,args);\n\tmathint numberOfChangesOfBalancesAfter = numberOfChangesOfBalances;\n\tassert numberOfChangesOfBalancesAfter <= numberOfChangesOfBalancesBefore + 2;\n}",
+        "type": "rule",
+        "id": "noMethodChangesMoreThanTwoBalances",
+        "title": "No method changes more than two balances",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ]
+    },
+    {
+        "content": "rule onlyAllowedMethodsMayChangeAllowance(env e) {\n\taddress addr1;\n\taddress addr2;\n\tuint256 allowanceBefore = allowance(addr1, addr2);\n\t\n    method f;\n    calldataarg args;\n\t\n    f(e,args);\n\t\n    uint256 allowanceAfter = allowance(addr1, addr2);\n\t\n    assert allowanceAfter > allowanceBefore => canIncreaseAllowance(f), \"should not increase allowance\";\n\tassert allowanceAfter < allowanceBefore => canDecreaseAllowance(f), \"should not decrease allowance\";\n}",
+        "type": "rule",
+        "id": "onlyAllowedMethodsMayChangeAllowance",
+        "title": "Only allowed methods may change allowance",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule onlyAllowedMethodsMayChangeBalance(env e){\n    requireInvariant totalSupplyIsSumOfBalances();\n\n    method f;\n    calldataarg args;\n\n    address holder;\n    uint256 balanceBefore = balanceOf(holder);\n    f(e, args);\n    uint256 balanceAfter = balanceOf(holder);\n    \n    assert balanceAfter > balanceBefore => canIncreaseBalance(f);\n    assert balanceAfter < balanceBefore => canDecreaseBalance(f);\n}",
+        "type": "rule",
+        "id": "onlyAllowedMethodsMayChangeBalance",
+        "title": "Only allowed methods may change balance",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule onlyOwnerMintOrBurn(env e){\n    method f;\n    calldataarg args;\n\n    f(e, args);\n\n    assert f.selector == sig:mint(address,uint256).selector => e.msg.sender == contractOwner();\n    assert f.selector == sig:burn(address,uint256).selector => e.msg.sender == contractOwner();\n}",
+        "type": "rule",
+        "id": "onlyOwnerMintOrBurn",
+        "title": "Only owner mint or burn",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule onlyAllowedMethodsMayChangeTotalSupply(env e) {\n    requireInvariant totalSupplyIsSumOfBalances();\n\n    method f;\n    calldataarg args;\n\n    uint256 totalSupplyBefore = totalSupply();\n    f(e, args);\n    uint256 totalSupplyAfter = totalSupply();\n\n    assert totalSupplyAfter > totalSupplyBefore => canIncreaseTotalSupply(f);\n    assert totalSupplyAfter < totalSupplyBefore => canDecreaseTotalSupply(f);\n}",
+        "type": "rule",
+        "id": "onlyAllowedMethodsMayChangeTotalSupply",
+        "title": "Only allowed methods may change total supply",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule reachability(method f)\n{\n\tenv e;\n\tcalldataarg args;\n\tf(e,args);\n\tsatisfy true;\n}",
+        "type": "rule",
+        "id": "reachability",
+        "title": "Reachability",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ]
+    },
+    {
+        "content": "rule onlyAuthorizedCanTransfer(env e, method f) filtered { f -> canDecreaseBalance(f) } {\n    requireInvariant totalSupplyIsSumOfBalances();\n\n    calldataarg args;\n    address account;\n\n    uint256 allowanceBefore = allowance(account, e.msg.sender);\n    uint256 balanceBefore   = balanceOf(account);\n    f(e, args);\n    uint256 balanceAfter    = balanceOf(account);\n\n    assert (\n        balanceAfter < balanceBefore\n    ) => (\n        f.selector == sig:burn(address,uint256).selector ||\n        e.msg.sender == account ||\n        balanceBefore - balanceAfter <= to_mathint(allowanceBefore)\n    );\n}",
+        "type": "rule",
+        "id": "onlyAuthorizedCanTransfer",
+        "title": "Only authorized can transfer",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            },
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ]
+    },
+    {
+        "content": "rule onlyHolderOfSpenderCanChangeAllowance(env e) {\n    method f;\n    calldataarg args;\n    address holder;\n    address spender;\n\n    uint256 allowanceBefore = allowance(holder, spender);\n    f(e, args);\n    uint256 allowanceAfter = allowance(holder, spender);\n\n    assert (\n        allowanceAfter > allowanceBefore\n    ) => (\n        (f.selector == sig:approve(address,uint256).selector           && e.msg.sender == holder) ||\n        (f.selector == sig:permit(address,address,uint256,uint256,uint8,bytes32,bytes32).selector)\n    );\n\n    assert (\n        allowanceAfter < allowanceBefore\n    ) => (\n        (f.selector == sig:transferFrom(address,address,uint256).selector && e.msg.sender == spender) ||\n        (f.selector == sig:approve(address,uint256).selector              && e.msg.sender == holder ) ||\n        (f.selector == sig:permit(address,address,uint256,uint256,uint8,bytes32,bytes32).selector)\n    );\n}",
+        "type": "rule",
+        "id": "onlyHolderOfSpenderCanChangeAllowance",
+        "title": "Only holder of spender can change allowance",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule mintIntegrity(env e) {\n    requireInvariant totalSupplyIsSumOfBalances();\n\n    address to;\n    uint256 amount;\n\n    // cache state\n    uint256 toBalanceBefore    = balanceOf(to);\n    uint256 totalSupplyBefore  = totalSupply();\n\n    // run transaction\n    mint(e, to, amount);\n\n    // check outcome\n\n    // assert contract owner was the one called\n    assert e.msg.sender == contractOwner(), \"Only contract owner can call mint.\";\n\n    // updates balance and totalSupply\n    assert to_mathint(balanceOf(to)) == toBalanceBefore   + amount;\n    assert to_mathint(totalSupply()) == totalSupplyBefore + amount;\n}",
+        "type": "rule",
+        "id": "mintIntegrity",
+        "title": "Mint integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule mintRevertingConditions(env e) {\n\taddress account;\n    uint256 amount;\n\n\trequire totalSupply() + amount <= max_uint; // proof in totalSupplyNeverOverflow\n\n\tbool nonOwner = e.msg.sender != contractOwner();\n\tbool payable = e.msg.value != 0;\n    bool isExpectedToRevert = nonOwner || payable;\n\n    mint@withrevert(e, account, amount);\n    \n    // if(lastReverted){\n    //     assert isExpectedToRevert;\n    // } else {\n    //     assert !isExpectedToRevert;\n    // }\n    \n    assert lastReverted <=> isExpectedToRevert;\n}",
+        "type": "rule",
+        "id": "mintRevertingConditions",
+        "title": "Mint reverting conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule mintDoesNotAffectThirdParty(env e) {\n\taddress addr1;\n\tuint256 amount;\n    \n    address addr2;\n    require addr1 != addr2;\n\t\n\tuint256 before = balanceOf(addr2);\n\t\n    mint(e, addr1, amount);\n    assert balanceOf(addr2) == before;\n}",
+        "type": "rule",
+        "id": "mintDoesNotAffectThirdParty",
+        "title": "Mint does not affect third party",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule burnIntegrity(env e) {\n    requireInvariant totalSupplyIsSumOfBalances();\n\n    address from;\n    uint256 amount;\n\n    // cache state\n    uint256 fromBalanceBefore  = balanceOf(from);\n    uint256 totalSupplyBefore  = totalSupply();\n\n    // run transaction\n    burn(e, from, amount);\n\n    // check outcome\n\n    // assert contract owner was the one called\n    assert e.msg.sender == contractOwner(), \"Only contract owner can call burn.\";\n\n    // updates balance and totalSupply\n    assert to_mathint(balanceOf(from)) == fromBalanceBefore   - amount;\n    assert to_mathint(totalSupply())   == totalSupplyBefore - amount;\n}",
+        "type": "rule",
+        "id": "burnIntegrity",
+        "title": "Burn integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule burnRevertingConditions(env e) {\n\taddress account;\n    uint256 amount;\n\n\tbool notOwner = e.msg.sender != contractOwner();\n\tbool payable = e.msg.value != 0;\n    bool notEnoughBalance = balanceOf(account) < amount;\n    bool isExpectedToRevert = notEnoughBalance || payable || notOwner;\n\n    burn@withrevert(e, account, amount);\n    // if(lastReverted) {\n    //     assert isExpectedToRevert;\n    // } \n    // else {\n    //     assert !isExpectedToRevert;\n    // }\n\n    assert lastReverted <=> isExpectedToRevert;\n}",
+        "type": "rule",
+        "id": "burnRevertingConditions",
+        "title": "Burn reverting conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule burnDoesNotAffectThirdParty( env e) {\n\taddress addr1;\n\tuint256 amount;\n\n    address addr2;\n    require addr1 != addr2;\n\n    uint256 before = balanceOf(addr2);\n\n\tburn(e, addr1, amount);\n    assert balanceOf(addr2) == before;\n}",
+        "type": "rule",
+        "id": "burnDoesNotAffectThirdParty",
+        "title": "Burn does not affect third party",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferIntegrity(env e) {\n    requireInvariant totalSupplyIsSumOfBalances();\n   \n    address holder = e.msg.sender;\n    address recipient;\n    uint256 amount;\n\n    // cache state\n    uint256 holderBalanceBefore    = balanceOf(holder);\n    uint256 recipientBalanceBefore = balanceOf(recipient);\n\n    // run transaction\n    transfer(e, recipient, amount);\n\n    // check outcome\n   \n    // balances of holder and recipient are updated\n    assert to_mathint(balanceOf(holder))    == holderBalanceBefore    - (holder == recipient ? 0 : amount);\n    assert to_mathint(balanceOf(recipient)) == recipientBalanceBefore + (holder == recipient ? 0 : amount);\n}",
+        "type": "rule",
+        "id": "transferIntegrity",
+        "title": "Transfer integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferIsOneWayAdditive(env e) {\n\taddress recipient;\n\tuint256 amount_a;\n    uint256 amount_b;\n\tmathint sum = amount_a + amount_b;\n\trequire sum < max_uint256;\n\tstorage init = lastStorage; // saves storage\n\t\n\ttransfer(e, recipient, assert_uint256(sum));\n\tstorage after1 = lastStorage;\n\n\ttransfer@withrevert(e, recipient, amount_a) at init; // restores storage\n\t\tassert !lastReverted;\t//if the transfer passed with sum, it should pass with both summands individually\n\ttransfer@withrevert(e, recipient, amount_b);\n\t\tassert !lastReverted;\n\tstorage after2 = lastStorage;\n\n\tassert after1[currentContract] == after2[currentContract];\n}",
+        "type": "rule",
+        "id": "transferIsOneWayAdditive",
+        "title": "Transfer is one way additive",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferRevertingConditions(env e) {\n\tuint256 amount;\n\taddress account;\n\n\tbool payable = e.msg.value != 0;\n    bool notEnoughBalance = balanceOf(e.msg.sender) < amount;\n    bool isExpectedToRevert = payable || notEnoughBalance;\n\n    transfer@withrevert(e, account, amount);\n    // if(lastReverted) {\n    //     assert isExpectedToRevert;\n    // } \n    // else {\n    //     assert !isExpectedToRevert;\n    // }\n\n    assert lastReverted <=> isExpectedToRevert;\n}",
+        "type": "rule",
+        "id": "transferRevertingConditions",
+        "title": "Transfer reverting conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferDoesNotAffectThirdParty( env e) {\n\taddress addr1;\n\tuint256 amount;\n\n    address addr2;\n    require addr1 != addr2 && addr2 != e.msg.sender;\n\n    uint256 before = balanceOf(addr2);\n\n\ttransfer(e, addr1, amount);\n    assert balanceOf(addr2) == before;\n}",
+        "type": "rule",
+        "id": "transferDoesNotAffectThirdParty",
+        "title": "Transfer does not affect third party",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferFromIntegrity(env e) {\n    requireInvariant totalSupplyIsSumOfBalances();\n\n    address spender = e.msg.sender;\n    address holder;\n    address recipient;\n    uint256 amount;\n\n    // cache state\n    uint256 allowanceBefore        = allowance(holder, spender);\n    uint256 holderBalanceBefore    = balanceOf(holder);\n    uint256 recipientBalanceBefore = balanceOf(recipient);\n\n    // run transaction\n    transferFrom(e, holder, recipient, amount);\n\n    // allowance is valid & updated\n    assert allowanceBefore >= amount;\n    assert to_mathint(allowance(holder, spender)) == (allowanceBefore == max_uint256 ? max_uint256 : allowanceBefore - amount);\n\n    // balances of holder and recipient are updated\n    assert to_mathint(balanceOf(holder))    == holderBalanceBefore    - (holder == recipient ? 0 : amount);\n    assert to_mathint(balanceOf(recipient)) == recipientBalanceBefore + (holder == recipient ? 0 : amount);\n}",
+        "type": "rule",
+        "id": "transferFromIntegrity",
+        "title": "Transfer from integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferFromRevertingConditions(env e) {\n    address owner;\n\taddress spender = e.msg.sender;\n\taddress recepient;\n\n\tuint256 allowed = allowance(owner, spender);\n\tuint256 transfered;\n\n\tbool sendEthToNotPayable = e.msg.value != 0;\n\tbool allowanceIsLow = allowed < transfered;\n    bool notEnoughBalance = balanceOf(owner) < transfered;\n\n    bool isExpectedToRevert = sendEthToNotPayable  || allowanceIsLow || notEnoughBalance;\n\n    transferFrom@withrevert(e, owner, recepient, transfered);   \n\n    // if(lastReverted) {\n    //     assert isExpectedToRevert;\n    // } else {\n    //     assert !(isExpectedToRevert);\n    // }\n\n    assert lastReverted <=> isExpectedToRevert;\n}",
+        "type": "rule",
+        "id": "transferFromRevertingConditions",
+        "title": "Transfer from reverting conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferFromDoesNotAffectThirdParty(env e) {\n\taddress spender = e.msg.sender;\n\taddress owner;\n\taddress recepient;\n\taddress thirdParty;\n    address everyUser;\n\n\trequire thirdParty != owner && thirdParty != recepient && thirdParty != spender;\n\n\tuint256 thirdPartyBalanceBefore = balanceOf(thirdParty);\n    uint256 thirdPartyAllowanceBefore = allowance(thirdParty, everyUser);\n\t\n    uint256 transfered;\n\n\ttransferFrom(e, owner, recepient, transfered);\n    \n\tuint256 thirdPartyBalanceAfter = balanceOf(thirdParty);\n\tuint256 thirdPartyAllowanceAfter = allowance(thirdParty, everyUser);\n\t\n\tassert thirdPartyBalanceBefore == thirdPartyBalanceAfter;\n    assert thirdPartyAllowanceBefore == thirdPartyAllowanceAfter;\n}",
+        "type": "rule",
+        "id": "transferFromDoesNotAffectThirdParty",
+        "title": "Transfer from does not affect third party",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule transferFromIsOneWayAdditive(env e) {\n\taddress recipient;\n    address owner;\n    address spender = e.msg.sender;\n\tuint256 amount_a;\n    uint256 amount_b;\n\tmathint sum = amount_a + amount_b;\n\trequire sum < max_uint256;\n\tstorage init = lastStorage; // saves storage\n\t\n\ttransferFrom(e, owner, recipient, assert_uint256(sum));\n\tstorage after1 = lastStorage;\n\n\ttransferFrom@withrevert(e, owner, recipient, amount_a) at init; // restores storage\n\t\tassert !lastReverted;\t//if the transfer passed with sum, it should pass with both summands individually\n\ttransferFrom@withrevert(e, owner, recipient, amount_b);\n\t\tassert !lastReverted;\n\tstorage after2 = lastStorage;\n\n\tassert after1[currentContract] == after2[currentContract];\n}",
+        "type": "rule",
+        "id": "transferFromIsOneWayAdditive",
+        "title": "Transfer from is one way additive",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule approveIntegrity(env e) {\n    address holder = e.msg.sender;\n    address spender;\n    uint256 amount;\n\n    approve(e, spender, amount);\n\n    assert allowance(holder, spender) == amount;\n}",
+        "type": "rule",
+        "id": "approveIntegrity",
+        "title": "Approve integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule approveRevertingConditions(env e) {\n\taddress spender;\n\taddress owner = e.msg.sender;\n\tuint256 amount;\n\n\tbool payable = e.msg.value != 0;\n\tbool isExpectedToRevert = payable;\n\n\tapprove@withrevert(e, spender, amount);\n\n\t// if(lastReverted){\n\t// \tassert isExpectedToRevert;\n\t// } else {\n\t// \tassert !isExpectedToRevert;\n\t// }\n\n    assert lastReverted <=> isExpectedToRevert;\n}",
+        "type": "rule",
+        "id": "approveRevertingConditions",
+        "title": "Approve reverting conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule approveDoesNotAffectThirdParty(env e) {\n\taddress spender;\n\taddress owner = e.msg.sender;\n\taddress thirdParty;\n    address everyUser; \n    \n    require thirdParty != owner && thirdParty != spender;\n    \n    uint amount;\n\tuint256 thirdPartyAllowanceBefore = allowance(thirdParty, everyUser);\n\n\tapprove(e, spender, amount);\n\n\tuint256 thirdPartyAllowanceAfter = allowance(thirdParty, everyUser);\n\n    assert thirdPartyAllowanceBefore == thirdPartyAllowanceBefore;\n}",
+        "type": "rule",
+        "id": "approveDoesNotAffectThirdParty",
+        "title": "Approve does not affect third party",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule permitIntegrity(env e) {\n    address holder;\n    address spender;\n    uint256 amount;\n    uint256 deadline;\n    uint8 v;\n    bytes32 r;\n    bytes32 s;\n\n    // cache state\n    uint256 nonceBefore          = nonces(holder);\n    \n    // sanity: nonce overflow, which possible in theory, is assumed to be impossible in practice\n    require nonceBefore      < max_uint256;\n    \n    // run transaction\n    permit(e, holder, spender, amount, deadline, v, r, s);\n\n    // check outcome\n\n    // allowance and nonce are updated\n    assert allowance(holder, spender) == amount;\n    assert to_mathint(nonces(holder)) == nonceBefore + 1;\n\n    // deadline was respected\n    assert deadline >= e.block.timestamp;\n}",
+        "type": "rule",
+        "id": "permitIntegrity",
+        "title": "Permit integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule permitRevertWhenDeadlineExpiers(env e){\n\taddress owner;\n\taddress spender;\n\tuint256 value;\n\tuint256 deadline;\n\tuint8 v;\n\tbytes32 r;\n\tbytes32 s;\n\n\trequire deadline < e.block.timestamp;\n\tpermit@withrevert(e,owner,spender,value,deadline,v,r,s);\n\tassert lastReverted;\n}",
+        "type": "rule",
+        "id": "permitRevertWhenDeadlineExpiers",
+        "title": "Permit revert when deadline expiers",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule permitDoesNotAffectThirdParty(env e) {\n    address holder;\n    address spender;\n    uint256 amount;\n    uint256 deadline;\n    uint8 v;\n    bytes32 r;\n    bytes32 s;\n\n    address thirdParty;\n    address everyUser;\n    \n    require thirdParty != holder && thirdParty != spender;\n\n\tuint256 thirdPartyAllowanceBefore = allowance(thirdParty, everyUser);\n\n\tapprove(e, spender, amount);\n\n\tuint256 thirdPartyAllowanceAfter = allowance(thirdParty, everyUser);\n\n    assert thirdPartyAllowanceBefore == thirdPartyAllowanceBefore;\n}",
+        "type": "rule",
+        "id": "permitDoesNotAffectThirdParty",
+        "title": "Permit does not affect third party",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule permitDenialOfService(){\n    env e1;\n    env e2;\n\n    address clientHolder;\n    address clientSpender;\n    uint256 clientAmount;\n    uint256 clientDeadline;\n    uint8 clientV;\n    bytes32 clientR;\n    bytes32 clientS;\n\n    address attackerHolder;\n    address attackerSpender;\n    uint256 attackerAmount;\n    uint256 attackerDeadline;\n    uint8 attackerV;\n    bytes32 attackerR;\n    bytes32 attackerS;\n\n    require e1.msg.sender != e2.msg.sender;\n\n    storage init = lastStorage;\n\n    permit(e1, clientHolder, clientSpender, clientAmount, clientDeadline, clientV, clientR, clientS); // if pass not reverted\n    \n    permit(e2, attackerHolder, attackerSpender, attackerAmount, attackerDeadline, attackerV, attackerR, attackerS) at init; // attacker attack\n\n    permit(e1, clientHolder, clientSpender, clientAmount, clientDeadline, clientV, clientR, clientS);\n\n    satisfy true;\n}",
+        "type": "rule",
+        "id": "permitDenialOfService",
+        "title": "Permit denial of service"
+    },
+    {
+        "content": "rule permitFrontRun(){\n    env e1;\n    env e2;\n\n    address clientHolder;\n    address clientSpender;\n    uint256 clientAmount;\n    uint256 clientDeadline;\n    uint8 clientV;\n    bytes32 clientR;\n    bytes32 clientS;\n\n    address attackerHolder;\n    address attackerSpender;\n    uint256 attackerAmount;\n    uint256 attackerDeadline;\n    uint8 attackerV;\n    bytes32 attackerR;\n    bytes32 attackerS;\n\n    require e1.msg.sender != e2.msg.sender;\n\n    storage init = lastStorage;\n\n    permit(e1, clientHolder, clientSpender, clientAmount, clientDeadline, clientV, clientR, clientS); // if pass not reverted\n    \n    permit(e2, attackerHolder, attackerSpender, attackerAmount, attackerDeadline, attackerV, attackerR, attackerS) at init; // attacker attack\n\n    permit@withrevert(e1, clientHolder, clientSpender, clientAmount, clientDeadline, clientV, clientR, clientS);\n\n    assert !lastReverted, \"Cannot sign permit with same signature\";\n}",
+        "type": "rule",
+        "id": "permitFrontRun",
+        "title": "Permit front run"
+    }
+]

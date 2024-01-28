@@ -1,0 +1,382 @@
+[
+    {
+        "type": "text",
+        "text": "This example is a full spec for LiquidityPool.\nTo run this use Certora cli with the conf file runFullPoll.conf\nExample of a run: https://prover.certora.com/output/1512/b84b2123fc1f447ba6cff06d8e07552c?anonymousKey=9917501bc57d897a7ec341a2521b30d92237f95d\nUnsatCores: https://prover.certora.com/output/1512/ce180e9d91464a3a9271cb5bf7119125/UnsatCoreVisualisation.html?anonymousKey=88059d4e9f56250f609546f0b77ebc3ed819509d\nMutation test for this spec: https://mutation-testing.certora.com/?id=66c71fdd-9a1d-44e4-b084-d8d4c3de9e61&anonymousKey=e157a2be-ed9d-4d30-90bb-06b6bee05daf\nSee https://docs.certora.com for a complete guide."
+    },
+    {
+        "content": "using Asset as underlying;",
+        "type": "using"
+    },
+    {
+        "content": "using TrivialReceiver as _TrivialReceiver;",
+        "type": "using"
+    },
+    {
+        "content": "methods\n{\n    function balanceOf(address)                      external returns(uint256) envfree;\n    function totalSupply()                           external returns(uint256) envfree;\n    function transfer(address, uint256)              external returns(bool);\n    function transferFrom(address, address, uint256) external returns(bool);\n    function amountToShares(uint256)                 external returns(uint256) envfree;\n    function sharesToAmount(uint256)                 external returns(uint256) envfree;\n    function depositedAmount()                       external returns(uint256) envfree;\n    function deposit(uint256)                        external returns(uint256);\n    function withdraw(uint256)                       external returns(uint256);\n    function calcPremium(uint256)                    external returns (uint256) envfree;\n\n    function _.executeOperation(uint256,uint256,address) external => DISPATCHER(true);\n    function flashLoan(address, uint256)                 external;\n\n    function underlying.balanceOf(address)               external returns(uint256) envfree;\n    function underlying.allowance(address, address)      external returns(uint256) envfree;\n    function underlying.totalSupply()                    external returns(uint256) envfree;\n}",
+        "type": "methods"
+    },
+    {
+        "content": "definition lock_on() returns bool = ghostReentrancyStatus == 2;",
+        "type": "definition",
+        "id": "lock_on",
+        "title": "Lock on",
+        "return": {
+            "type": "bool"
+        }
+    },
+    {
+        "content": "definition poll_functions(method f) returns bool = f.selector == sig:withdraw(uint256).selector ||\n                                      f.selector == sig:deposit(uint256).selector ||\n                                      f.selector == sig:flashLoan(address, uint256).selector;",
+        "type": "definition",
+        "id": "poll_functions",
+        "title": "Poll functions",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ],
+        "return": {
+            "type": "bool"
+        }
+    },
+    {
+        "content": "ghost uint256 ghostReentrancyStatus;",
+        "type": "ghost",
+        "id": "ghostReentrancyStatus",
+        "title": "Ghost reentrancy status"
+    },
+    {
+        "content": "ghost bool lock_status_on_call;",
+        "type": "ghost",
+        "id": "lock_status_on_call",
+        "title": "Lock status on call"
+    },
+    {
+        "content": "hook Sload uint256 status currentContract._status STORAGE {\n    require ghostReentrancyStatus == status;\n}",
+        "type": "hook"
+    },
+    {
+        "content": "hook Sstore currentContract._status uint256 status STORAGE {\n    ghostReentrancyStatus = status;\n}",
+        "type": "hook"
+    },
+    {
+        "content": "hook CALL(uint g, address addr, uint value, uint argsOffset, uint argsLength, uint retOffset, uint retLength) uint rc {\n    lock_status_on_call = lock_on(); \n}",
+        "type": "hook"
+    },
+    {
+        "content": "rule reentrancyCheck(env e, method f, calldataarg args) filtered{f -> poll_functions(f)}{\n    bool lockBefore = lock_on();\n    \n    f(e, args);\n    \n    bool lockAfter = lock_on();\n    \n    assert !lockBefore && !lockAfter;\n    assert lock_status_on_call;\n}",
+        "type": "rule",
+        "id": "reentrancyCheck",
+        "title": "Reentrancy check",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            },
+            {
+                "type": "method",
+                "name": "f"
+            },
+            {
+                "type": "calldataarg",
+                "name": "args"
+            }
+        ]
+    },
+    {
+        "content": "rule depositIntegrity(env e){\n\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    uint256 amount;\n    uint256 clientBalanceBefore = underlying.balanceOf(e.msg.sender);\n    uint256 clientSharesBefore = balanceOf(e.msg.sender);\n\n    uint256 depositedShares = deposit(e, amount);\n\n    uint256 clientBalanceAfter = underlying.balanceOf(e.msg.sender);\n    uint256 clientSharesAfter = balanceOf(e.msg.sender);\n\n    assert (amount == 0) => (depositedShares == 0) && (clientBalanceBefore == clientBalanceAfter) && (clientSharesBefore == clientSharesAfter);\n    assert (amount > 0) => (clientBalanceBefore - amount == to_mathint(clientBalanceAfter)) && (clientSharesBefore + depositedShares == to_mathint(clientSharesAfter));\n}",
+        "type": "rule",
+        "id": "depositIntegrity",
+        "title": "Deposit integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule depositRevertConditions(env e){\n\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    uint256 amount;\n    uint256 clientBalanceBefore = underlying.balanceOf(e.msg.sender);\n    uint256 clientSharesBefore = balanceOf(e.msg.sender);\n    \n    bool underFlow = clientBalanceBefore - amount < 0;\n    bool emptyPool = totalSupply() == 0 || depositedAmount() == 0;\n    bool clientSharesOverflow = (clientSharesBefore + amount > max_uint256 && emptyPool) || clientSharesBefore + amountToShares(amount) > max_uint256;\n    bool totalSharesOverflow = totalSupply() + amountToShares(amount) > max_uint256;\n    bool contractUnderlyingOverflow = underlying.balanceOf(currentContract) + amount > max_uint256 || depositedAmount() + amount > max_uint256;\n    bool overflow =  clientSharesOverflow || totalSharesOverflow || contractUnderlyingOverflow;\n    bool payable = e.msg.value != 0;\n    bool reentrancy = lock_on();\n    bool notEnoughAllowance = underlying.allowance(e.msg.sender, currentContract) < amount;\n    bool zeroShares = amountToShares(amount) == 0 && !emptyPool;\n    bool expectedRevert = underFlow || overflow || payable || reentrancy || notEnoughAllowance || zeroShares;\n\n    deposit@withrevert(e, amount);\n\n    assert lastReverted <=> expectedRevert;\n}",
+        "type": "rule",
+        "id": "depositRevertConditions",
+        "title": "Deposit revert conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule depositGreaterThanZeroWithMinted(env e) {\n    uint256 amount;\n    require amount > 0;\n    uint256 amountMinted = deposit(e, amount);\n    \n    assert amount > 0 <=> amountMinted > 0;\n}",
+        "type": "rule",
+        "id": "depositGreaterThanZeroWithMinted",
+        "title": "Deposit greater than zero with minted",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule splitDepositFavoursTheContract(env e){\n    uint256 wholeAmount;\n    uint256 amountA; \n    uint256 amountB;\n    require amountA + amountB == to_mathint(wholeAmount);\n    requireInvariant totalSharesIsZeroWithUnderlyingDeposited();\n\n    storage init = lastStorage;\n\n    uint256 wholeShares = deposit(e, wholeAmount);\n\n    uint256 sharesA = deposit(e, amountA) at init;\n    uint256 sharesB = deposit(e, amountB);\n\n    assert to_mathint(wholeShares) >= sharesA + sharesB;\n}",
+        "type": "rule",
+        "id": "splitDepositFavoursTheContract",
+        "title": "Split deposit favours the contract",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule withdrawIntegrity(env e){\n\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    uint256 shares;\n    uint256 clientBalanceBefore = underlying.balanceOf(e.msg.sender);\n    uint256 clientSharesBefore = balanceOf(e.msg.sender);\n\n    uint256 withdrawAmount = withdraw(e, shares);\n\n    uint256 clientBalanceAfter = underlying.balanceOf(e.msg.sender);\n    uint256 clientSharesAfter = balanceOf(e.msg.sender);\n\n\n    assert (shares == 0) => (withdrawAmount == 0) && (clientBalanceBefore == clientBalanceAfter) && (clientSharesBefore == clientSharesAfter);\n    assert (shares > 0) => (clientBalanceBefore + withdrawAmount == to_mathint(clientBalanceAfter)) && (clientSharesBefore - shares == to_mathint(clientSharesAfter));\n}",
+        "type": "rule",
+        "id": "withdrawIntegrity",
+        "title": "Withdraw integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule withdrawRevertConditions(env e){\n\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    uint256 amount;\n    uint256 clientBalanceBefore = underlying.balanceOf(e.msg.sender);\n    uint256 clientSharesBefore = balanceOf(e.msg.sender);\n    \n    bool clientBalanceUnderflow = clientSharesBefore - amount < 0;\n    bool poolUnderflow = underlying.balanceOf(currentContract) - sharesToAmount(amount) < 0 || totalSupply() - amount < 0;\n    bool underflow = clientBalanceUnderflow || poolUnderflow;\n    bool overflow = clientBalanceBefore + sharesToAmount(amount) > max_uint256;\n    bool payable = e.msg.value != 0;\n    bool reentrancy = lock_on();\n    bool notEnoughAllowance = underlying.allowance(currentContract, currentContract) < sharesToAmount(amount);\n    bool zeroAmount = sharesToAmount(amount) == 0;\n    bool poolIsEmpty = underlying.balanceOf(currentContract) == 0;\n    bool expectedRevert = poolIsEmpty || underflow || overflow || payable || reentrancy || notEnoughAllowance || zeroAmount;\n\n    withdraw@withrevert(e, amount);\n\n    assert lastReverted <=> expectedRevert;\n}",
+        "type": "rule",
+        "id": "withdrawRevertConditions",
+        "title": "Withdraw revert conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule splitWithdrawFavoursTheContract(env e){\n    uint256 wholeShares;\n    uint256 sharesA; \n    uint256 sharesB;\n    require sharesA + sharesB == to_mathint(wholeShares);\n\n    storage init = lastStorage;\n\n    uint256 wholeAmount = withdraw(e, wholeShares);\n\n    uint256 amountA = withdraw(e, sharesA) at init;\n    uint256 amountB = withdraw(e, sharesB);\n\n    assert to_mathint(wholeAmount) >= amountA + amountB;\n}",
+        "type": "rule",
+        "id": "splitWithdrawFavoursTheContract",
+        "title": "Split withdraw favours the contract",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule flashLoanIntegrity(env e){\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    address receiver;\n    uint256 amount;\n\n    uint256 contractUnderlyingBalanceBefore  = underlying.balanceOf(currentContract);\n    uint256 contractSharesBefore = balanceOf(currentContract);\n\n    flashLoan(e, receiver, amount);\n\n    uint256 contractUnderlyingBalanceAfter = underlying.balanceOf(currentContract);\n    uint256 contractSharesAfter = balanceOf(currentContract);\n\n    assert (amount == 0) => contractUnderlyingBalanceBefore == contractUnderlyingBalanceAfter;\n    assert (amount > 0) => contractUnderlyingBalanceBefore < contractUnderlyingBalanceAfter;\n    assert contractSharesBefore == contractSharesAfter;\n}",
+        "type": "rule",
+        "id": "flashLoanIntegrity",
+        "title": "Flash loan integrity",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule flashLoanRevertConditions(env e){\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    address receiver;\n    uint256 amount;\n    \n    bool noPremium = calcPremium(amount) == 0;\n    bool receiverIsNotIFlashloanAddress = receiver != _TrivialReceiver;\\\n    bool payable = e.msg.value != 0;\n    bool reentrancy = lock_on();\n    bool clientUnderflow = underlying.balanceOf(e.msg.sender) - calcPremium(amount) < 0;\n    bool poolUnderflow = underlying.balanceOf(currentContract) - amount < 0 || depositedAmount() - amount < 0;\n    bool underflow = clientUnderflow || poolUnderflow;\n    bool poolBlanceOverflow = underlying.balanceOf(currentContract) + calcPremium(amount) > max_uint256 || depositedAmount() + calcPremium(amount) > max_uint256;\n    bool clientBalanceOverflow = underlying.balanceOf(e.msg.sender) + amount > max_uint256;\n    bool overflow = poolBlanceOverflow || clientBalanceOverflow;\n    bool notEnoughAllowance = to_mathint(underlying.allowance(e.msg.sender, currentContract)) < calcPremium(amount) + amount || underlying.allowance(currentContract, currentContract) < amount;\n    bool isExpectedToRevert = notEnoughAllowance || overflow || underflow || noPremium || receiverIsNotIFlashloanAddress || payable || reentrancy;\n\n    flashLoan@withrevert(e, receiver, amount);\n\n    assert isExpectedToRevert <=> lastReverted;\n}",
+        "type": "rule",
+        "id": "flashLoanRevertConditions",
+        "title": "Flash loan revert conditions",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule reachability(method f)\n{\n\tenv e;\n\tcalldataarg args;\n\tf(e,args);\n\tsatisfy true;\n}",
+        "type": "rule",
+        "id": "reachability",
+        "title": "Reachability",
+        "params": [
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ]
+    },
+    {
+        "content": "invariant totalSharesLessThanUnderlyingBalance()\n    totalSupply() <= underlying.balanceOf(currentContract)\n    {\n        preserved with(env e) {\n            require e.msg.sender != currentContract;\n            requireInvariant totalSharesLessThanDepositedAmount();\n            requireInvariant depositedAmountLessThanContractUnderlyingAsset();\n        }\n    }",
+        "type": "invariant",
+        "id": "totalSharesLessThanUnderlyingBalance",
+        "title": "Total shares less than underlying balance"
+    },
+    {
+        "content": "invariant totalSharesLessThanDepositedAmount()\n    totalSupply() <= depositedAmount();",
+        "type": "invariant",
+        "id": "totalSharesLessThanDepositedAmount",
+        "title": "Total shares less than deposited amount"
+    },
+    {
+        "content": "invariant depositedAmountLessThanContractUnderlyingAsset()\n    depositedAmount() <= underlying.balanceOf(currentContract)\n    {\n        preserved with(env e) {\n            require e.msg.sender != currentContract;\n        }\n    }",
+        "type": "invariant",
+        "id": "depositedAmountLessThanContractUnderlyingAsset",
+        "title": "Deposited amount less than contract underlying asset"
+    },
+    {
+        "content": "invariant totalSharesIsZeroWithUnderlyingDeposited()\n\t\ttotalSupply() == 0 <=> depositedAmount() == 0;",
+        "type": "invariant",
+        "id": "totalSharesIsZeroWithUnderlyingDeposited",
+        "title": "Total shares is zero with underlying deposited"
+    },
+    {
+        "content": "ghost mathint sumOfShares {\n    init_state axiom sumOfShares == 0;\n}",
+        "type": "ghost",
+        "id": "sumOfShares",
+        "title": "Sum of shares"
+    },
+    {
+        "content": "hook Sstore _balanceOf[KEY address user] uint256 newSharesBalance (uint256 oldSharesBalance) STORAGE\n{\n    sumOfShares = sumOfShares + newSharesBalance - oldSharesBalance;\n}",
+        "type": "hook"
+    },
+    {
+        "content": "invariant totalSharesEqualSumOfShares()\n\t\tto_mathint(totalSupply()) == sumOfShares;",
+        "type": "invariant",
+        "id": "totalSharesEqualSumOfShares",
+        "title": "Total shares equal sum of shares"
+    },
+    {
+        "content": "ghost mathint sumBalances {\n    init_state axiom sumBalances == 0;\n}",
+        "type": "ghost",
+        "id": "sumBalances",
+        "title": "Sum balances"
+    },
+    {
+        "content": "hook Sstore underlying._balanceOf[KEY address user] uint256 newBalance (uint256 oldBalance) STORAGE\n{\n    sumBalances = sumBalances + newBalance - oldBalance;\n}",
+        "type": "hook"
+    },
+    {
+        "content": "invariant totalIsSumBalances()\n    to_mathint(underlying.totalSupply()) == sumBalances;",
+        "type": "invariant",
+        "id": "totalIsSumBalances",
+        "title": "Total is sum balances"
+    },
+    {
+        "content": "rule sharesAndBalanceConsistency(env e, method f) filtered {\n    f -> f.selector != sig:transfer(address,uint256).selector &&\n    f.selector != sig:transferFrom(address,address,uint256).selector\n    } {\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    uint256 UnderlyingBalanceBefore = underlying.balanceOf(e.msg.sender);\n    uint256 SharesBefore = balanceOf(e.msg.sender);\n    \n    calldataarg args;\n    f(e, args);\n    \n    uint256 UnderlyingBalanceAfter = underlying.balanceOf(e.msg.sender);\n    uint256 SharesAfter = balanceOf(e.msg.sender);\n    \n    assert UnderlyingBalanceBefore < UnderlyingBalanceAfter <=> SharesBefore > SharesAfter;\n}",
+        "type": "rule",
+        "id": "sharesAndBalanceConsistency",
+        "title": "Shares and balance consistency",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            },
+            {
+                "type": "method",
+                "name": "f"
+            }
+        ]
+    },
+    {
+        "content": "rule moreSharesMoreWithdraw(env e) {\n    uint256 sharesX;\n    uint256 sharesY;\n    uint256 amountX;\n    uint256 amountY;\n\n    storage init = lastStorage;\n    \n    amountX = withdraw(e, sharesX);\n    amountY = withdraw(e, sharesY) at init;\n    \n    assert sharesX > sharesY => amountX >= amountY;\n}",
+        "type": "rule",
+        "id": "moreSharesMoreWithdraw",
+        "title": "More shares more withdraw",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule amountRoundingTripFavoursContract(env e) {\n    requireInvariant totalSharesIsZeroWithUnderlyingDeposited();\n\n    uint256 clientAmountBefore = underlying.balanceOf(e.msg.sender);\n    uint256 contractAmountBefore = underlying.balanceOf(currentContract);\n\n    uint256 clientShares = deposit(e, clientAmountBefore);\n    uint256 clientAmountAfter = withdraw(e, clientShares);\n    uint256 contractAmountAfter = underlying.balanceOf(currentContract);\n\n    assert clientAmountBefore >= clientAmountAfter;\n    assert contractAmountBefore <= contractAmountAfter;\n}",
+        "type": "rule",
+        "id": "amountRoundingTripFavoursContract",
+        "title": "Amount rounding trip favours contract",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule sharesRoundingTripFavoursContract(env e) {\n    uint256 clientSharesBefore = balanceOf(e.msg.sender);\n    uint256 contractSharesBefore = balanceOf(currentContract);\n\n    requireInvariant totalSharesLessThanDepositedAmount();\n    require e.msg.sender != currentContract; // this assumption must hold to avoid shares dilute attack\n\n    uint256 depositedAmount = depositedAmount();\n\n    uint256 clientAmount = withdraw(e, clientSharesBefore);\n    uint256 clientSharesAfter = deposit(e, clientAmount);\n    uint256 contractSharesAfter = balanceOf(currentContract);\n\n    /* \n    if client is last and first depositor he will get more shares\n    but still he wont be able to withdraw more underlying asset than deposited amount (which in that case its only his deposit) \n    as proved in noClientHasSharesWithMoreValueThanDepositedAmount invariant.\n    */ \n    assert (clientAmount == depositedAmount) => clientSharesBefore <= clientSharesAfter; \n    \n    // all other states\n    assert (clientAmount < depositedAmount) => clientSharesBefore >= clientSharesAfter;\n    assert contractSharesBefore <= contractSharesAfter;\n}",
+        "type": "rule",
+        "id": "sharesRoundingTripFavoursContract",
+        "title": "Shares rounding trip favours contract",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "invariant noClientHasSharesWithMoreValueThanDepositedAmount(address a)\n        sharesToAmount(balanceOf(a)) <= depositedAmount()\n\t\t{\n\t\t\tpreserved with(env e) {\n\t\t\t\trequire balanceOf(a) + balanceOf(e.msg.sender) < to_mathint(totalSupply());\n\t\t\t}\n            preserved transferFrom(address sender, address recipient, uint256 amount) with (env e) {\n                require balanceOf(sender) + balanceOf(e.msg.sender) + balanceOf(recipient) < to_mathint(totalSupply());\n            }\n\t\t}",
+        "type": "invariant",
+        "id": "noClientHasSharesWithMoreValueThanDepositedAmount",
+        "title": "No client has shares with more value than deposited amount",
+        "params": [
+            {
+                "type": "address",
+                "name": "a"
+            }
+        ]
+    },
+    {
+        "content": "rule amountToSharesConversion(env e){\n    uint256 amountA;\n    uint256 amountB;\n    assert amountA <= amountB => amountToShares(amountA) <= amountToShares(amountB);\n}",
+        "type": "rule",
+        "id": "amountToSharesConversion",
+        "title": "Amount to shares conversion",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule sharesToAmountConversion(env e){\n    uint256 sharesA;\n    uint256 sharesB;\n    assert sharesA <= sharesB => sharesToAmount(sharesA) <= sharesToAmount(sharesB);\n}",
+        "type": "rule",
+        "id": "sharesToAmountConversion",
+        "title": "Shares to amount conversion",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule calculatePremium(env e){\n    uint256 amountA;\n    uint256 amountB;\n    assert amountA <= amountB => calcPremium(amountA) <= calcPremium(amountB);\n}",
+        "type": "rule",
+        "id": "calculatePremium",
+        "title": "Calculate premium",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            }
+        ]
+    },
+    {
+        "content": "rule thirdPartyNotAffected(env e, method f, calldataarg args) filtered {\n    f -> f.selector != sig:transfer(address,uint256).selector &&\n    f.selector != sig:transferFrom(address,address,uint256).selector\n    }{\n    address thirdParty;\n\n    require thirdParty != currentContract && thirdParty != e.msg.sender; \n\n    uint256 thirdPartyBalanceBefore = underlying.balanceOf(thirdParty);\n    uint256 thirdPartySharesBefore = balanceOf(thirdParty);\n\n    f(e, args);\n\n    uint256 thirdPartyBalanceAfter = underlying.balanceOf(thirdParty);\n    uint256 thirdPartySharesAfter = balanceOf(thirdParty);\n\n    assert (thirdPartyBalanceAfter == thirdPartyBalanceBefore);\n    assert (thirdPartySharesAfter == thirdPartySharesBefore);\n}",
+        "type": "rule",
+        "id": "thirdPartyNotAffected",
+        "title": "Third party not affected",
+        "params": [
+            {
+                "type": "env",
+                "name": "e"
+            },
+            {
+                "type": "method",
+                "name": "f"
+            },
+            {
+                "type": "calldataarg",
+                "name": "args"
+            }
+        ]
+    }
+]
