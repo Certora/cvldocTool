@@ -1,33 +1,25 @@
 # CVLDoc
-parse NatSpec comments from a spec file(s) and save them in a JSON file.
+CLI interface for [`cvldoc_parser`](https://github.com/Certora/cvldoc_parser), compatible with Linux (x64), macOS (Intel/ARM) and Windows (x64). Uses `cvldoc_parser` to dump a `.spec` file's `CVLDoc` comments to JSON, along with additional metadata.
 
-## usage
+# Installation
+Current versions of this tool (2.0 and later) are only available on Test `PyPi` and can be installed by running
 
-CVLDoc.exe [-h] [-v] [-dev] [-user] [--version]
-                          input_file [input_file ...]
+`pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple CVLDoc`
 
-argument:
-input_file      - the input spec file to analyze, there can be more than one
-### options:
--h, --help      - display help message and exit.
--v, --verbosity - increase output verbosity
---version       - show program version and exit
+Alternatively, it can be installed locally (with `pip`).
 
-The tool invoke the netspec parser and will generate a JSON file that contains all the 
+Earlier versions (1.x) are no longer maintained.
 
-# Testing
-In order to test the JSON generator run simply:
-    python natspec_tests.py
-This will run a series of spec file as input and compare the 
-resulted json with the expected json result.
-Any differences will be reported to the standard outputs.
+# Usage
 
-## Notes
+```
+cvldoc [-h] [-u] [-v] [--version] input_files [input_files ...]
 
-1. Every input file will generate a JSON file, with the same name, at the same folder, different extension.
-   2. If the parser or the conversion process will encounter one or more problems, the error messages will be displayed on the standard output
-   3. Not all NatSpec tags and required error messages are supported in this version.
-
-
-
+options:
+  -h, --help            show help message and exit
+  -u, --include_undocumented
+                        include parsed elements that have no CVLDoc block
+  -v, --verbose         increase output verbosity
+  --version             show program's version number and exit
+```
 
